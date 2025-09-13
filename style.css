@@ -94,7 +94,7 @@ header.project-header {
   z-index: 1000;
 }
 
-.header-content {
+.header-contenido {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -128,7 +128,7 @@ header.project-header {
    ============================================= */
 
 @media (max-width: 768px) {
-  .header-content {
+  .header-contenido {
     flex-direction: column;
     gap: 15px;
   }
@@ -299,7 +299,7 @@ header.project-header {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  right: 15px;
+  left: 10px;
   bottom: 15px;
   z-index: 1000;
   background: rgba(0, 0, 0, 0.6);
@@ -392,16 +392,17 @@ header.project-header {
 
 #side-panel,
 .info-panel {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  right: -420px; /* Completamente oculto por defecto */
-  width: 380px;
-  max-height: 90vh;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  max-height: calc(100% - 40px);
   background: white;
   border-radius: 15px;
   box-shadow: 0 5px 25px rgba(0,0,0,0.15);
-  transition: right 0.4s ease-in-out;
+  transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+  transform: translateX(100%);
+  opacity: 0;
   z-index: 1000;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
@@ -411,7 +412,8 @@ header.project-header {
 
 #side-panel.visible,
 .info-panel.visible { 
-  right: 20px; 
+  transform: translateX(0);
+  opacity: 1;
 }
 
 .panel-header { 
@@ -599,16 +601,17 @@ header.project-header {
 
 /* Panel de Búsqueda y Áreas */
 .search-panel, .areas-panel {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  right: -420px; /* Completamente oculto por defecto */
-  width: 380px;
-  max-height: 90vh;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  max-height: calc(100% - 40px);
   background: white;
   border-radius: 15px;
   box-shadow: 0 5px 25px rgba(0,0,0,0.15);
-  transition: right 0.4s ease-in-out;
+  transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+  transform: translateX(100%);
+  opacity: 0;
   z-index: 1000;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
@@ -617,7 +620,8 @@ header.project-header {
 }
 
 .search-panel.visible, .areas-panel.visible { 
-  right: 20px; 
+  transform: translateX(0);
+  opacity: 1;
 }
 
 .area-item { 
@@ -715,4 +719,26 @@ header.project-header {
   text-align: center;
   margin: 20px 0;
   font-weight: 500;
+}
+
+/* =============================================
+   RESPONSIVIDAD PARA PANELES
+   ============================================= */
+@media (max-width: 768px) {
+  .search-panel, .areas-panel, .info-panel {
+    width: calc(100% - 40px);
+    max-width: 280px;
+    top: 20px;
+    right: 20px;
+    max-height: calc(100% - 40px);
+  }
+}
+
+@media (max-width: 480px) {
+  .search-panel, .areas-panel, .info-panel {
+    width: calc(100% - 30px);
+    top: 15px;
+    right: 15px;
+    max-height: calc(100% - 30px);
+  }
 }

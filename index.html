@@ -22,16 +22,13 @@
 <body>
 
     <header class="project-header">
-      <div class="header-content">
+      <div class="header-contenido">
         <div class="project-selector">
-          <label for="project-select">Proyecto:</label>
+          <label for="project-select">Etapa:</label>
           <select id="project-select">
             <option value="">-- Seleccione --</option>
-            <option value="sector-a">Sector A</option>
-            <option value="sector-b">Sector B</option>
-            <option value="sector-c">Sector C</option>
-            <option value="sector-d">Sector D</option>
-            <option value="sector-e">Sector E</option>
+            <option value="etapa-1">Etapa 1 (pendiente)</option>
+            <option value="etapa-2">Etapa 2</option>
             <option value="completo">Vista Completa</option>
           </select>
         </div>
@@ -101,21 +98,7 @@
     </button>
   </div>
   </div>
-    </div>
-  </div>
 
-
-</section>
-
-<!-- =============================================
-     SECCIÓN DE CONTROLES DE INTERFAZ
-     ============================================= -->
-
-<!-- =============================================
-     SECCIÓN DE PANELES LATERALES
-     ============================================= -->
-<section class="side-panels-section">
-  
   <!-- Panel de información de lotes -->
   <article id="side-panel" class="info-panel">
     <div class="panel-header">
@@ -197,6 +180,10 @@
       </div>
     </div>
   </article>
+
+    </div>
+  </div>
+
 
 </section>
 
@@ -335,14 +322,30 @@
     minZoom: -3,
     maxZoom: 2,
     zoomControl: false,
+    attributionControl: false, // Elimina la marca de agua de Leaflet
     maxBounds: bounds,
-    maxBoundsViscosity: 1.0,
+    maxBoundsViscosity: 1.0, // Límites duros sin rebote al centro
     keyboard: false
   });
 
   map.fitBounds(bounds);
   map.scrollWheelZoom.enable();
-  L.imageOverlay('PRUEVAPNG.png', bounds).addTo(map);
+  // Manejo dinámico del overlay de imagen (mapa base por etapa)
+  let currentOverlay = null;
+  function setOverlay(imageSrc) {
+    // Remover overlay anterior si existe
+    if (currentOverlay) {
+      try { map.removeLayer(currentOverlay); } catch (e) { console.warn('No se pudo eliminar overlay previo', e); }
+      currentOverlay = null;
+    }
+    // Añadir nuevo overlay si imageSrc definido
+    if (imageSrc) {
+      currentOverlay = L.imageOverlay(imageSrc, bounds).addTo(map);
+    }
+  }
+
+  // Imagen por defecto (vista completa)
+  setOverlay('ETAPA 1 Y 2 UNIDAS  JPG OFICIAL.png');
 
   const polygons = [];
   let activo = 0;
@@ -706,28 +709,19 @@
     // *** FUNCIONALIDAD DEL SELECTOR DE PROYECTO ***
     const projectSelect = document.getElementById('project-select');
     
-    // Definir las coordenadas de cada sector
+    // Definir etapas y vistas
     const sectores = {
-      'sector-a': {
-        bounds: [[0, 0], [height/5, width/3]],
+      // Etapa 1: imagen pendiente (el usuario la subirá más adelante)
+      'etapa-1': {
+        bounds: bounds,
         files: []
       },
-      'sector-b': {
-        bounds: [[0, width/3], [height/5, 2*width/3]],
+      // Etapa 2: imagen incluida en el repo
+      'etapa-2': {
+        bounds: bounds,
         files: []
       },
-      'sector-c': {
-        bounds: [[height/5, 0], [2*height/5, width/3]],
-        files: []
-      },
-      'sector-d': {
-        bounds: [[height/5, width/3], [2*height/5, 2*width/3]],
-        files: []
-      },
-      'sector-e': {
-        bounds: [[2*height/5, 0], [height, width]],
-        files: []
-      },
+      // Vista completa general
       'completo': {
         bounds: bounds,
         files: []
@@ -747,16 +741,26 @@
         });
         polygons.length = 0;
         
-        // Ajustar vista del mapa al sector seleccionado
+        // Ajustar vista del mapa al sector/etapa seleccionado
         map.fitBounds(sectores[selectedSector].bounds);
+
+        // Cambiar overlay según la etapa seleccionada
+        if (selectedSector === 'etapa-2') {
+          setOverlay('ETAPA 2 FINAL JPG (1).jpg');
+        } else if (selectedSector === 'etapa-1') {
+          // Etapa 1 pendiente: quitar overlay para indicar ausencia
+          setOverlay(null);
+        } else if (selectedSector === 'completo') {
+          setOverlay('image.png');
+        }
         
-        // Cargar solo los archivos del sector seleccionado
+        // Cargar solo los archivos del sector/etapa seleccionado
         sectores[selectedSector].files.forEach(file => {
           cargarLotes(file);
         });
         
         // Actualizar el info
-        document.getElementById('info').innerText = `Sector: ${selectedSector.toUpperCase()} `;
+        document.getElementById('info').innerText = `Etapa: ${selectedSector.toUpperCase()} `;
       } else if (selectedSector === '') {
         // Vista completa por defecto
         map.fitBounds(bounds);
