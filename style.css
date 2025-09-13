@@ -1,0 +1,718 @@
+/* === INTEGRACIÓN DE ESTILOS DEL <style> INTERNO DE index2_fixed.html === */
+.main-header {
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+}
+
+body {
+  padding-top: 0 !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-content {
+  margin-top: 140px; /* Espacio para el header fijo */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    margin-top: 160px; /* Más espacio en móvil */
+  }
+  .map-wrapper {
+    height: 50vh;
+  }
+}
+
+.footer {
+  margin-top: auto;
+  z-index: 10 !important;
+}
+
+.whatsapp-float {
+  z-index: 9998 !important;
+}
+
+/* Paneles laterales z-index */
+.info-panel,
+.search-panel,
+.areas-panel {
+  z-index: 998 !important;
+}
+
+.side-panels-section {
+  position: relative;
+  z-index: 995;
+}
+
+/* Ajustes de overflow para evitar scrolls indeseados */
+.map-container, .map-wrapper {
+  overflow: visible !important;
+}
+
+/* Reset scroll y estructura de la página (ya cubierto en parte por el reset global) */
+html, body {
+  height: auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+/* =============================================
+   ESTILOS PRINCIPALES DEL MAPA INTERACTIVO
+   ============================================= */
+
+/* Reset y configuración base */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+  overflow-x: hidden; /* Evitar scroll horizontal */
+}
+
+canvas {
+  display: block;
+}
+
+/* =============================================
+   HEADER CON SELECTOR DE PROYECTO
+   ============================================= */
+
+header.project-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1000;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+.project-selector {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+.header-menu {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.header-spacer {
+  flex-shrink: 0;
+  width: 200px; /* Same width as project-selector to balance */
+}
+
+/* =============================================
+   RESPONSIVE DESIGN PARA EL HEADER
+   ============================================= */
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .header-spacer {
+    display: none;
+  }
+  
+  .header-menu {
+    order: -1; /* Mover los botones arriba en móvil */
+  }
+  
+  .project-selector {
+    justify-content: center;
+  }
+  
+  .header-menu .ui-button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+.project-selector label {
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.project-selector select {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  min-width: 200px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+
+.project-selector select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+}
+
+/* =============================================
+   CONTENEDOR PRINCIPAL DEL MAPA
+   ============================================= */
+
+.map-section {
+  width: 100%;  
+}
+
+.map-container {
+  max-width: 1060px;
+  margin: 20px auto;
+  padding: 0 20px;
+  position: relative;
+  overflow: hidden; /* Evitar que los paneles ocultos causen scroll */
+}
+
+.map-wrapper {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  overflow: hidden;
+  position: relative;
+  height: 80vh;
+  min-height: 400px;
+}
+
+#map {
+  height: 100%;
+  width: 100%;
+  border-radius: 15px;
+}
+
+#info {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 12px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* =============================================
+   ESTILOS PARA LOTES INTERACTIVOS
+   ============================================= */
+
+.hover-lote {
+  stroke: transparent;
+  fill-opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.hover-lote:hover {
+  stroke: white !important;
+  stroke-width: 2 !important;
+  fill-opacity: 0.1 !important;
+  fill: white !important;
+  cursor: hand;
+}
+
+/* =============================================
+   BARRA DE ESTADOS DE LOTES
+   ============================================= */
+
+.status-bar {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+}
+
+.status-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.status-btn.disponible {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-btn.reservado {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.status-btn.vendido {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+.status-btn.bloqueado {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.status-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* =============================================
+   CONTROLES DE NAVEGACIÓN
+   ============================================= */
+
+.bottom-center-controls {
+  position: absolute !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  right: 15px;
+  bottom: 15px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  padding: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.control-button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  color: #374151;
+}
+
+.control-button:hover {
+  background: rgba(243, 244, 246, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #1f2937;
+}
+
+.control-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.control-button svg {
+  transition: all 0.2s ease;
+}
+
+/* =============================================
+   BOTONES DE LA INTERFAZ
+   ============================================= */
+
+.ui-button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 25px;
+  background: #6b7280;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.ui-button:hover {
+  background: #4b5563;
+  transform: translateY(-2px);
+}
+
+.ui-button.active {
+  background: #2563eb;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+.ui-button:not(.active) {
+  background: #6b7280;
+}
+
+/* =============================================
+   PANELES LATERALES
+   ============================================= */
+
+/* =============================================
+   SECCIONES ORGANIZATIVAS
+   ============================================= */
+
+.ui-controls-section,
+.side-panels-section {
+  position: relative;
+  z-index: 1000;
+}
+
+/* =============================================
+   PANELES LATERALES
+   ============================================= */
+
+#side-panel,
+.info-panel {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  right: -420px; /* Completamente oculto por defecto */
+  width: 380px;
+  max-height: 90vh;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+  transition: right 0.4s ease-in-out;
+  z-index: 1000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#side-panel.visible,
+.info-panel.visible { 
+  right: 20px; 
+}
+
+.panel-header { 
+  padding: 15px 20px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+}
+
+.back-button { 
+  color: #555; 
+  text-decoration: none; 
+  font-size: 16px; 
+}
+
+#close-panel { 
+  background: none; 
+  border: none; 
+  font-size: 28px; 
+  cursor: pointer; 
+  color: #aaa; 
+  line-height: 1; 
+}
+
+.panel-content { 
+  padding: 0 25px; 
+  overflow-y: auto; 
+  flex-grow: 1; 
+}
+
+.project-title { 
+  font-size: 28px; 
+  font-weight: 900; 
+  color: #003366; 
+  margin: 0; 
+}
+
+.lote-info { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin: 15px 0 25px 0; 
+}
+
+.lote-id { 
+  font-size: 20px; 
+  color: #333; 
+  font-weight: 600; 
+}
+
+.status-tag { 
+  background-color: #e8f5e9; 
+  color: #4caf50; 
+  padding: 5px 12px; 
+  border-radius: 15px; 
+  font-size: 14px; 
+  font-weight: 600; 
+}
+
+.info-grid { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 15px 10px; 
+  border-top: 1px solid #eee; 
+  padding-top: 20px; 
+}
+
+.info-item { 
+  display: flex; 
+  flex-direction: column; 
+}
+
+.info-item .label { 
+  color: #888; 
+  font-size: 14px; 
+  margin-bottom: 2px; 
+}
+
+.info-item .value { 
+  color: #333; 
+  font-size: 16px; 
+  font-weight: 600; 
+}
+
+.dimensions-title { 
+  font-size: 18px; 
+  font-weight: 600; 
+  color: #333; 
+  margin: 25px 0 10px 0; 
+  border-top: 1px solid #eee; 
+  padding-top: 20px; 
+}
+
+.dimension-item { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  padding: 8px 0; 
+}
+
+.dimension-label { 
+  display: flex; 
+  align-items: center; 
+  color: #555; 
+}
+
+.dimension-icon { 
+  width: 24px; 
+  height: 24px; 
+  background-color: #eee; 
+  border-radius: 50%; 
+  display: inline-flex; 
+  justify-content: center; 
+  align-items: center; 
+  margin-right: 12px; 
+  font-weight: bold; 
+  color: #555; 
+}
+
+.dimension-value { 
+  font-weight: 600; 
+  color: #333; 
+}
+
+.panel-footer { 
+  padding: 20px 25px; 
+  margin-top: auto; 
+}
+
+.whatsapp-button { 
+  display: block; 
+  width: 92%; 
+  background-color: #25D366; 
+  color: white; 
+  text-align: center; 
+  padding: 15px; 
+  border-radius: 25px; 
+  text-decoration: none; 
+  font-size: 16px; 
+  font-weight: 600; 
+  transition: background-color 0.2s; 
+}
+
+.whatsapp-button:hover { 
+  background-color: #1EBE57; 
+}
+
+/* =============================================
+   MENÚS DE NAVEGACIÓN
+   ============================================= */
+
+.header-menu {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.header-menu .ui-button { 
+  background-color: rgba(255, 255, 255, 0.2); 
+  color: white; 
+  border: none; 
+  padding: 12px 24px; 
+  cursor: pointer; 
+  font-size: 16px; 
+  font-weight: 500;
+  border-radius: 25px; 
+  transition: all 0.3s ease; 
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-menu .ui-button.active, 
+.header-menu .ui-button:hover { 
+  background-color: rgba(255, 255, 255, 0.3); 
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+
+.control-button:hover { 
+  color: #aaa; 
+}
+
+/* Panel de Búsqueda y Áreas */
+.search-panel, .areas-panel {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  right: -420px; /* Completamente oculto por defecto */
+  width: 380px;
+  max-height: 90vh;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+  transition: right 0.4s ease-in-out;
+  z-index: 1000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.search-panel.visible, .areas-panel.visible { 
+  right: 20px; 
+}
+
+.area-item { 
+  padding: 15px 20px; 
+  border-bottom: 1px solid #eee; 
+  cursor: pointer; 
+  transition: background-color 0.2s; 
+}
+
+.area-item:hover { 
+  background-color: #f5f5f5; 
+}
+
+/* --- Estilos para el Buscador de Lotes --- */
+.search-panel .panel-content { padding: 20px 25px; overflow-y: auto; }
+.filter-group { margin-bottom: 25px; }
+.filter-label { font-weight: 600; color: #333; margin-bottom: 10px; display: block; }
+.filter-group .range-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: #e0e0e0; outline: none; border-radius: 2px; }
+.filter-group .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: white; border: 2px solid #0056b3; box-shadow: 0 1px 4px rgba(0,0,0,0.2); cursor: pointer; }
+.filter-group .range-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: white; border: 2px solid #0056b3; box-shadow: 0 1px 4px rgba(0,0,0,0.2); cursor: pointer; }
+.sort-actions { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 15px; }
+.custom-select { -webkit-appearance: none; appearance: none; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; background-color: white; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5z%22%20fill%3D%22%23888%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; background-size: 12px; }
+.clear-filters { font-size: 14px; color: #007bff; text-decoration: none; }
+.lote-result-card { background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 15px; margin-top: 15px; }
+.lote-result-card h4 { margin: 0 0 15px 0; font-size: 18px; }
+.card-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; margin-bottom: 15px; }
+.card-info-grid .label { font-size: 12px; color: #888; display: block; }
+.card-info-grid .value { font-size: 14px; font-weight: 600; color: #333; }
+.card-info-grid .value.available { color: #4caf50; }
+.ver-mas-btn { width: 100%; background: white; border: 1px solid #ccc; padding: 10px; border-radius: 20px; cursor: pointer; transition: background-color 0.2s; }
+.ver-mas-btn:hover { background-color: #f0f0f0; }
+
+/* Estilos para el slider de doble rango */
+.dual-range-slider {
+  position: relative;
+  height: 20px;
+}
+.dual-range-slider input[type=range] {
+  position: absolute;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none; /* Los inputs son invisibles, los thumbs son los que se mueven */
+}
+.dual-range-slider input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: all; /* Habilitar eventos solo en el thumb */
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #0056b3;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+  margin-top: -3px; /* Centra el control verticalmente */
+}
+.dual-range-slider input[type=range]::-moz-range-thumb {
+  pointer-events: all;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #0056b3;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+  margin-top: -3px; /* Centra el control verticalmente */
+}
+.dual-range-slider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 100%;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  transform: translateY(-50%);
+  z-index: -1;
+}
+
+/* Estilo para truncar texto en selectores */
+.custom-select {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Estilo para el contador de resultados */
+.results-count {
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 10px 20px;
+  border-radius: 20px;
+  text-align: center;
+  margin: 20px 0;
+  font-weight: 500;
+}

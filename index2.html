@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lotes Interactivos - Casa Bonita</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Barra de Estados de Lotes -->
+  <div class="status-bar">
+    <button class="status-btn disponible">Disponible</button>
+    <button class="status-btn reservado">Reservado</button>
+    <button class="status-btn vendido">Vendido</button>
+    <button class="status-btn bloqueado">Bloqueado</button>
+  </div>
+
+  
+  <!-- Panel lateral con diseño moderno -->
+  <div id="side-panel">
+    <div class="panel-header">
+      <a href="#" class="back-button">&lt; Volver</a>
+      <button id="close-panel">&times;</button>
+    </div>
+    <div class="panel-content">
+      <h2 class="project-title">CASA BONITA</h2>
+      <div class="lote-info">
+        <span class="lote-id" id="lote-id">-</span>
+        <span class="status-tag" id="lote-estado">-</span>
+      </div>
+      <div class="info-grid">
+        <div class="info-item"><span class="label">Precio financiado</span><span class="value" id="lote-precio-financiado">-</span></div>
+        <div class="info-item"><span class="label">Precio contado</span><span class="value" id="lote-precio-contado">-</span></div>
+        <div class="info-item"><span class="label">Tipo de lote</span><span class="value" id="lote-tipo">-</span></div>
+        <div class="info-item"><span class="label">Área</span><span class="value" id="lote-area">-</span></div>
+      </div>
+      <h3 class="dimensions-title">Dimensiones</h3>
+      <div class="dimension-item"><div class="dimension-label"><span class="dimension-icon">&larr;</span> Izquierda</div><span class="dimension-value" id="dim-izquierda">-</span></div>
+      <div class="dimension-item"><div class="dimension-label"><span class="dimension-icon">&rarr;</span> Derecha</div><span class="dimension-value" id="dim-derecha">-</span></div>
+      <div class="dimension-item"><div class="dimension-label"><span class="dimension-icon">&harr;</span> Frente</div><span class="dimension-value" id="dim-frente">-</span></div>
+      <div class="dimension-item"><div class="dimension-label"><span class="dimension-icon">&uarr;&darr;</span> Fondo</div><span class="dimension-value" id="dim-fondo">-</span></div>
+    </div>
+    <div class="panel-footer">
+      <a href="#" id="whatsapp-link" class="whatsapp-button" target="_blank">Contáctanos por WhatsApp</a>
+    </div>
+  </div>
+
+  <!-- Interfaz de Usuario Adicional -->
+  <div class="top-left-menu">
+    <button id="btn-areas" class="ui-button">Áreas Comunes</button>
+    <button id="btn-lotes" class="ui-button">Lotes</button>
+  </div>
+
+  <div class="bottom-center-controls">
+    <button id="btn-home" class="control-button">🏠</button>
+    <button id="btn-cam-up" class="control-button">⬆️</button>
+    <button id="btn-cam-down" class="control-button">⬇️</button>
+    <button id="btn-zoom-in" class="control-button">➕</button>
+    <button id="btn-zoom-out" class="control-button">➖</button>
+  </div>
+
+  <!-- Panel de Búsqueda de Lotes -->
+  <div id="search-panel" class="search-panel">
+     <div class="panel-header">
+      <h3>Buscador de lotes</h3>
+      <button id="close-search-panel">&times;</button>
+    </div>
+    <div class="panel-content">
+      <div class="filter-group">
+        <label class="filter-label">Área: <span id="area-range-label">90 m² - 180 m²</span></label>
+        <div class="dual-range-slider">
+          <input type="range" id="area-min" min="90" max="180" value="90">
+          <input type="range" id="area-max" min="90" max="180" value="180">
+        </div>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Precio: <span id="price-range-label">$0 - $16,500</span></label>
+        <div class="dual-range-slider">
+          <input type="range" id="price-min" min="0" max="16500" value="0">
+          <input type="range" id="price-max" min="0" max="16500" value="16500">
+        </div>
+      </div>
+      <div class="sort-actions">
+        <div class="sort-by" style="flex: 1;">
+          <label style="font-size: 14px; color: #888; display: block; margin-bottom: 5px;">Ordenar por</label>
+          <select class="custom-select" id="sort-by-select">
+            <option value="area-asc">Área: de menor a mayor</option>
+            <option value="area-desc">Área: de mayor a menor</option>
+            <option value="price-asc">Precio: de menor a mayor</option>
+            <option value="price-desc">Precio: de mayor a menor</option>
+          </select>
+        </div>
+        <div class="status-filter" style="flex: 1; text-align: right;">
+          <a href="#" class="clear-filters" style="font-size: 12px; display: block; margin-bottom: 5px;">Limpiar filtros</a>
+          <select class="custom-select" id="status-filter-select">
+            <option>Todos</option>
+            <option>Disponible</option>
+            <option>Vendido</option>
+            <option>Reservado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="results-count" id="results-count-display"></div>
+    </div>
+  </div>
+
+  <!-- Panel de Áreas Comunes -->
+  <div id="areas-panel" class="areas-panel">
+    <div class="panel-header">
+        <h3>Áreas Comunes</h3>
+        <button id="close-areas-panel">&times;</button>
+    </div>
+    <div id="areas-list"></div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.157.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.157.0/examples/jsm/"
+      }
+    }
+  </script>
+
+</head>
+<body>
+
+<!-- Header con selector de proyecto -->
+<div class="project-header">
+  <div class="project-selector">
+    <label for="project-select">Proyecto:</label>
+    <select id="project-select">
+      <option value="">-- Seleccione --</option>
+      <option value="sector-a">Sector A</option>
+      <option value="sector-b">Sector B</option>
+      <option value="sector-c">Sector C</option>
+      <option value="sector-d">Sector D</option>
+      <option value="sector-e">Sector E</option>
+      <option value="completo">Vista Completa</option>
+    </select>
+  </div>
+
+      <!-- Barra de Estados de Lotes - ahora dentro del contenedor -->
+    <div class="status-bar">
+      <button class="status-btn disponible">Disponible</button>
+      <button class="status-btn reservado">Reservado</button>
+      <button class="status-btn vendido">Vendido</button>
+      <button class="status-btn bloqueado">Bloqueado</button>
+    </div>
+
+</div>
+
+<!-- Contenedor principal del mapa -->
+<div class="map-container">
+  <div class="map-wrapper">
+    
+    <div id="info">← ↑ ↓ → mover | + / - escalar | R rotar | Tab cambiar lote</div>
+    <div id="map"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const width = 6991;
+  const height = 3955;
+  const bounds = [[0, 0], [height, width]];
+
+  const map = L.map('map', {
+    crs: L.CRS.Simple,
+    minZoom: -3,
+    maxZoom: 2,
+    zoomControl: true,
+    maxBounds: bounds,
+    maxBoundsViscosity: 1.0,
+    keyboard: false
+  });
+
+  map.fitBounds(bounds);
+  map.scrollWheelZoom.enable();
+  L.imageOverlay('plano.jpg', bounds).addTo(map);
+
+  const polygons = [];
+  let activo = 0;
+
+
+
+  function cargarLotes(archivo) {
+    fetch(archivo)
+      .then(res => res.json())
+      .then(lotes => {
+        lotes.forEach((lote, index) => {
+          const color = lote.estado === "Disponible" ? "green" :
+                        lote.estado === "Reservado" ? "orange" : "gray";
+
+          const poly = L.polygon(lote.coords, {
+            className: 'hover-lote'
+          }).addTo(map)
+            .bindPopup(`<b>${lote.id}</b><br>Área: ${lote.area}<br>Precio: ${lote.precio}<br>Estado: ${lote.estado}`);
+
+          const centro = lote.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
+                          .map(t => t / lote.coords.length);
+
+          const punto = L.circleMarker(centro, {
+            radius: 6,
+            fillColor: color,
+            color: 'white',
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 1
+          }).addTo(map);
+
+          polygons.push({ poly, punto, coords: lote.coords });
+        });
+      });
+  }
+
+  function getActivo() {
+    return polygons[activo];
+  }
+
+  function mover(dx, dy) {
+    const a = getActivo();
+    a.coords = a.coords.map(([y, x]) => [y + dy, x + dx]);
+    a.poly.setLatLngs(a.coords);
+
+    const centro = a.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
+                  .map(t => t / a.coords.length);
+    a.punto.setLatLng(centro);
+  }
+
+  function escalar(factor) {
+    const a = getActivo();
+    const centro = a.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
+                  .map(t => t / a.coords.length);
+    a.coords = a.coords.map(([y, x]) => [
+      centro[0] + (y - centro[0]) * factor,
+      centro[1] + (x - centro[1]) * factor
+    ]);
+    a.poly.setLatLngs(a.coords);
+    a.punto.setLatLng(centro);
+  }
+
+  function rotar(grados) {
+    const a = getActivo();
+    const rad = grados * Math.PI / 180;
+    const centro = a.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
+                  .map(t => t / a.coords.length);
+    a.coords = a.coords.map(([y, x]) => {
+      const dy = y - centro[0];
+      const dx = x - centro[1];
+      const ry = dy * Math.cos(rad) - dx * Math.sin(rad);
+      const rx = dy * Math.sin(rad) + dx * Math.cos(rad);
+      return [centro[0] + ry, centro[1] + rx];
+    });
+    a.poly.setLatLngs(a.coords);
+    a.punto.setLatLng(centro);
+  }
+
+  document.addEventListener('keydown', e => {
+    switch (e.key) {
+      case 'ArrowUp': mover(0, 1); break;
+      case 'ArrowDown': mover(0, -1); break;
+      case 'ArrowLeft': mover(-1, 0); break;
+      case 'ArrowRight': mover(1, 0); break;
+      case '+': escalar(1.1); break;
+      case '-': escalar(0.9); break;
+      case 't': rotar(-1); break;
+      case 'r': rotar(1); break;
+      case 'Tab':
+        activo = (activo + 1) % polygons.length;
+        document.getElementById('info').innerText =
+          `Polígono activo: ${activo + 1} de ${polygons.length}`;
+        e.preventDefault();
+        break;
+      case 'Enter':
+        const a = getActivo();
+        const line = a.coords.map(([y, x]) => `[${y.toFixed(2)},${x.toFixed(2)}]`).join(',');
+        console.log(`[${line}],`);
+        break;
+    }
+    e.preventDefault();
+  });
+
+ // Coordenadas de los lotes disponibles con información detallada
+    const lotesDisponibles = [
+      {
+        x: 9.15, y: 0.50, z: 15.28,
+        manzana: 'K1', lote: '21',
+        estado: 'Disponible',
+        precioFinanciado: '$ 7,300.00',
+        precioContado: '$ 6,600.00',
+        tipo: 'Residencial',
+        area: '116.56 m²',
+        dimensiones: {
+          izquierda: '19.43 ML',
+          derecha: '19.43 ML',
+          frente: '6.00 ML',
+          fondo: '6.00 ML'
+        },
+        whatsappLink: 'https://wa.me/1234567890?text=Hola,%20estoy%20interesado%20en%20el%20lote%20K1-21'
+      }
+    ];
+
+        // Referencias a todos los paneles y botones
+    const sidePanel = document.getElementById('side-panel');
+    const searchPanel = document.getElementById('search-panel');
+    const areasPanel = document.getElementById('areas-panel');
+    const closePanelButton = document.getElementById('close-panel');
+    const closeSearchPanelButton = document.getElementById('close-search-panel');
+    const closeAreasPanelButton = document.getElementById('close-areas-panel');
+    const btnAreas = document.getElementById('btn-areas');
+    const btnLotes = document.getElementById('btn-lotes');
+    const areasList = document.getElementById('areas-list');
+    let selectedLote = null;
+
+    // --- Lógica para Filtros y Buscador ---
+    function setupDualRangeSliders() {
+      const sliders = document.querySelectorAll('.dual-range-slider');
+      sliders.forEach(slider => {
+        const minInput = slider.querySelector('input[type=range]:first-of-type');
+        const maxInput = slider.querySelector('input[type=range]:last-of-type');
+        const label = document.getElementById(`${minInput.id.split('-')[0]}-range-label`);
+
+        const updateLabel = () => {
+          const minVal = parseInt(minInput.value);
+          const maxVal = parseInt(maxInput.value);
+          if (label.id.includes('area')) {
+            label.textContent = `${minVal} m² - ${maxVal} m²`;
+          } else {
+            label.textContent = `$${minVal.toLocaleString()} - $${maxVal.toLocaleString()}`;
+          }
+        };
+
+        const filterOnChange = () => {
+            filterAndRenderLotes();
+        }
+
+        minInput.addEventListener('input', () => {
+          if (parseInt(minInput.value) > parseInt(maxInput.value)) {
+            minInput.value = maxInput.value;
+          }
+          updateLabel();
+          filterOnChange();
+        });
+
+        maxInput.addEventListener('input', () => {
+          if (parseInt(maxInput.value) < parseInt(minInput.value)) {
+            maxInput.value = minInput.value;
+          }
+          updateLabel();
+          filterOnChange();
+        });
+
+        updateLabel();
+      });
+    }
+
+    function resetFilters() {
+      // Restablecer sliders de rango
+      const areaMin = document.getElementById('area-min');
+      const areaMax = document.getElementById('area-max');
+      const priceMin = document.getElementById('price-min');
+      const priceMax = document.getElementById('price-max');
+
+      areaMin.value = areaMin.min;
+      areaMax.value = areaMax.max;
+      priceMin.value = priceMin.min;
+      priceMax.value = priceMax.max;
+   // Restablecer menús desplegables
+      document.getElementById('sort-by-select').selectedIndex = 0;
+      document.getElementById('status-filter-select').selectedIndex = 0;
+
+      // Actualizar etiquetas y renderizar lotes
+      setupDualRangeSliders(); // Llama a la función que actualiza las etiquetas
+      filterAndRenderLotes();
+    }
+
+     function filterAndRenderLotes() {
+      const areaMin = parseInt(document.getElementById('area-min').value);
+      const areaMax = parseInt(document.getElementById('area-max').value);
+      const priceMin = parseInt(document.getElementById('price-min').value);
+      const priceMax = parseInt(document.getElementById('price-max').value);
+      const sortBy = document.getElementById('sort-by-select').value;
+      
+      const resultsContainer = document.querySelector('#search-panel .panel-content');
+      resultsContainer.querySelectorAll('.lote-result-card').forEach(card => card.remove());
+
+      let filteredLotes = lotesDisponibles.filter(lote => {
+        const area = parseFloat(lote.area.replace(/[^0-9.]/g, ''));
+        const price = parseFloat(lote.precioContado.replace(/[^0-9.]/g, ''));
+        return area >= areaMin && area <= areaMax && price >= priceMin && price <= priceMax;
+      });
+
+      filteredLotes.sort((a, b) => {
+        const areaA = parseFloat(a.area.replace(/[^0-9.]/g, ''));
+        const areaB = parseFloat(b.area.replace(/[^0-9.]/g, ''));
+        const priceA = parseFloat(a.precioContado.replace(/[^0-9.]/g, ''));
+        const priceB = parseFloat(b.precioContado.replace(/[^0-9.]/g, ''));
+
+        switch (sortBy) {
+          case 'area-asc': return areaA - areaB;
+          case 'area-desc': return areaB - areaA;
+          case 'price-asc': return priceA - priceB;
+          case 'price-desc': return priceB - priceA;
+          default: return 0;
+        }
+      });
+
+      const countDisplay = document.getElementById('results-count-display');
+      countDisplay.textContent = `Mostrando ${filteredLotes.length} lote(s)`;
+
+      filteredLotes.forEach(lote => {
+        const card = document.createElement('div');
+        card.className = 'lote-result-card';
+        card.innerHTML = `
+          <h4>Mz. ${lote.manzana} - Lote ${lote.lote}</h4>
+          <div class="card-info-grid">
+            <div><span class="label">Estado</span><span class="value available">${lote.estado}</span></div>
+            <div><span class="label">Área</span><span class="value">${lote.area}</span></div>
+            <div><span class="label">Precio</span><span class="value">${lote.precioContado}</span></div>
+          </div>
+          <button class="ver-mas-btn">Ver más</button>
+        `;
+        resultsContainer.appendChild(card);
+      });
+    }
+
+    const areasComunes = [
+      { nombre: 'Piscina', coords: { x: 0, y: 0, z: 0 } },
+      { nombre: 'Cancha de Tenis', coords: { x: 10, y: 0, z: 10 } },
+      { nombre: 'Parque Infantil', coords: { x: -10, y: 0, z: -10 } }
+    ];
+    
+    // *** INICIALIZACIÓN - Esta es la parte clave que faltaba ***
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Inicializando controles...');
+      
+      // Configurar filtros
+      setupDualRangeSliders();
+      filterAndRenderLotes();
+      
+      // Event listeners para filtros
+      document.getElementById('sort-by-select').addEventListener('change', filterAndRenderLotes);
+      document.querySelector('.clear-filters').addEventListener('click', (e) => {
+        e.preventDefault();
+        resetFilters();
+      });
+
+      // --- Lógica de Paneles ---
+      function hideAllPanels() {
+        sidePanel.classList.remove('visible');
+        searchPanel.classList.remove('visible');
+        areasPanel.classList.remove('visible');
+        // Desmarcar todos los botones
+        btnLotes.classList.remove('active');
+        btnAreas.classList.remove('active');
+      }
+
+      function renderAreasComunes() {
+        areasList.innerHTML = '';
+        for (const area of areasComunes) {
+          const item = document.createElement('div');
+          item.className = 'area-item';
+          item.textContent = area.nombre;
+          item.onclick = () => {
+            // Futuro: Mostrar fotos o info del área
+            alert(`Has hecho clic en ${area.nombre}`);
+          };
+          areasList.appendChild(item);
+        }
+      }
+
+      // Event listeners para botones de paneles
+      btnLotes.addEventListener('click', () => {
+        console.log('Botón Lotes clickeado');
+        hideAllPanels();
+        searchPanel.classList.add('visible');
+        btnLotes.classList.add('active');
+      });
+
+      btnAreas.addEventListener('click', () => {
+        console.log('Botón Áreas clickeado');
+        hideAllPanels();
+        areasPanel.classList.add('visible');
+        btnAreas.classList.add('active');
+        renderAreasComunes();
+      });
+
+      // Event listeners para cerrar paneles
+      closePanelButton.addEventListener('click', () => {
+        console.log('Cerrando panel principal');
+        hideAllPanels();
+      });
+      closeSearchPanelButton.addEventListener('click', () => {
+        console.log('Cerrando panel de búsqueda');
+        hideAllPanels();
+      });
+      closeAreasPanelButton.addEventListener('click', () => {
+        console.log('Cerrando panel de áreas');
+        hideAllPanels();
+      });
+
+      // *** CONTROLES DE ZOOM CORREGIDOS PARA LEAFLET ***
+      document.getElementById('btn-zoom-in').addEventListener('click', () => {
+        console.log('Zoom in');
+        map.zoomIn();
+      });
+
+      document.getElementById('btn-zoom-out').addEventListener('click', () => {
+        console.log('Zoom out');
+        map.zoomOut();
+      });
+
+      document.getElementById('btn-cam-up').addEventListener('click', () => {
+        console.log('Pan arriba');
+        map.panBy([0, -50]); // Mover hacia arriba
+      });
+
+      document.getElementById('btn-cam-down').addEventListener('click', () => {
+        console.log('Pan abajo');
+        map.panBy([0, 50]); // Mover hacia abajo
+      });
+
+      document.getElementById('btn-home').addEventListener('click', () => {
+        console.log('Vista inicial');
+        map.fitBounds(bounds); // Volver a la vista inicial
+      });
+
+      // *** FUNCIONALIDAD DEL SELECTOR DE PROYECTO ***
+      const projectSelect = document.getElementById('project-select');
+      
+      // Definir las coordenadas de cada sector
+      const sectores = {
+        'sector-a': {
+          bounds: [[0, 0], [height/5, width/3]],
+          files: ['lotes_A.json']
+        },
+        'sector-b': {
+          bounds: [[0, width/3], [height/5, 2*width/3]],
+          files: ['lotes_B.json']
+        },
+        'sector-c': {
+          bounds: [[height/5, 0], [2*height/5, width/3]],
+          files: ['lotes_C.json']
+        },
+        'sector-d': {
+          bounds: [[height/5, width/3], [2*height/5, 2*width/3]],
+          files: ['lotes_D.json']
+        },
+        'sector-e': {
+          bounds: [[2*height/5, 0], [height, width]],
+          files: ['lotes_E.json']
+        },
+        'completo': {
+          bounds: bounds,
+          files: ['lotes_A.json', 'lotes_B.json', 'lotes_C.json', 'lotes_D.json', 'lotes_E.json']
+        }
+      };
+
+      projectSelect.addEventListener('change', function() {
+        const selectedSector = this.value;
+        
+        if (selectedSector && sectores[selectedSector]) {
+          console.log(`Cambiando a ${selectedSector}`);
+          
+          // Limpiar polígonos existentes
+          polygons.forEach(pol => {
+            if (pol.poly) map.removeLayer(pol.poly);
+            if (pol.punto) map.removeLayer(pol.punto);
+          });
+          polygons.length = 0;
+          
+          // Ajustar vista del mapa al sector seleccionado
+          map.fitBounds(sectores[selectedSector].bounds);
+          
+          // Cargar solo los archivos del sector seleccionado
+          sectores[selectedSector].files.forEach(file => {
+            cargarLotes(file);
+          });
+          
+          // Actualizar el info
+          document.getElementById('info').innerText = `Sector: ${selectedSector.toUpperCase()} | ← ↑ ↓ → mover | + / - escalar | R rotar`;
+        } else if (selectedSector === '') {
+          // Vista completa por defecto
+          map.fitBounds(bounds);
+          document.getElementById('info').innerText = '← ↑ ↓ → mover | + / - escalar | R rotar | Tab cambiar lote';
+        }
+      });
+
+      // Seleccionar vista completa por defecto
+      projectSelect.value = 'completo';
+      projectSelect.dispatchEvent(new Event('change'));
+
+      // Función para actualizar la información del panel
+      function updatePanelInfo(lote) {
+        if (!lote) return;
+        
+        document.getElementById('lote-id').textContent = `Mz. ${lote.manzana} - Lote ${lote.lote}`;
+        document.getElementById('lote-estado').textContent = lote.estado || '-';
+        document.getElementById('lote-precio-financiado').textContent = lote.precioFinanciado || '-';
+        document.getElementById('lote-precio-contado').textContent = lote.precioContado || '-';
+        document.getElementById('lote-tipo').textContent = lote.tipo || '-';
+        document.getElementById('lote-area').textContent = lote.area || '-';
+        
+        document.getElementById('dim-izquierda').textContent = lote.dimensiones.izquierda || '-';
+        document.getElementById('dim-derecha').textContent = lote.dimensiones.derecha || '-';
+        document.getElementById('dim-frente').textContent = lote.dimensiones.frente || '-';
+        document.getElementById('dim-fondo').textContent = lote.dimensiones.fondo || '-';
+
+        document.getElementById('whatsapp-link').href = lote.whatsappLink || '#';
+      }
+
+      // Función para mostrar el panel de info del lote
+      function showPanel() {
+        hideAllPanels(); // Ocultar otros paneles antes de mostrar este
+        if (sidePanel) sidePanel.classList.add('visible');
+      }
+
+      // Función para ocultar el panel
+      function hidePanel() {
+        if (sidePanel) sidePanel.classList.remove('visible');
+      }
+
+      console.log('Controles inicializados correctamente');
+    });
+
+
+</script>
+
+</body>
+</html>
