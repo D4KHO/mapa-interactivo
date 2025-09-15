@@ -313,9 +313,21 @@
      ============================================= -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  const width = 3500;
-  const height = 3848;
-  const bounds = [[0, 0], [height, width]];
+  // Tamaños por-sector (puedes ajustar estos valores en el código)
+  const sectorSizes = {
+    'etapa-1': { width: 3500, height: 3848 },
+    'etapa-2': { width: 2500, height: 4539 },
+    'completo': { width: 3500, height: 3848 }
+  };
+
+  // Helper para crear bounds a partir de width/height
+  function makeBounds(width, height) {
+    return [[0, 0], [height, width]];
+  }
+
+  // Valores iniciales: usar 'completo' como default para crear el mapa
+  let currentSector = 'completo';
+  let bounds = makeBounds(sectorSizes[currentSector].width, sectorSizes[currentSector].height);
 
   const map = L.map('map', {
     crs: L.CRS.Simple,
@@ -332,7 +344,7 @@
   map.scrollWheelZoom.enable();
   // Manejo dinámico del overlay de imagen (mapa base por etapa)
   let currentOverlay = null;
-  function setOverlay(imageSrc) {
+  function setOverlay(imageSrc, dims) {
     // Remover overlay anterior si existe
     if (currentOverlay) {
       try { map.removeLayer(currentOverlay); } catch (e) { console.warn('No se pudo eliminar overlay previo', e); }
@@ -340,12 +352,18 @@
     }
     // Añadir nuevo overlay si imageSrc definido
     if (imageSrc) {
+      // Si se pasan dimensiones, actualizar bounds antes de aplicar
+      if (dims && dims.width && dims.height) {
+        bounds = makeBounds(dims.width, dims.height);
+        try { map.setMaxBounds(bounds); } catch (e) { /* map no inicializado aún */ }
+        try { map.fitBounds(bounds); } catch (e) { /* ignore */ }
+      }
       currentOverlay = L.imageOverlay(imageSrc, bounds).addTo(map);
     }
   }
 
-  // Imagen por defecto (vista completa)
-  setOverlay('ETAPA 1 Y 2 UNIDAS  JPG OFICIAL.png');
+  // Imagen por defecto (vista completa) usando dimensiones específicas
+  setOverlay('ETAPA 1 Y 2 UNIDAS  JPG OFICIAL.png', sectorSizes['completo']);
 
   const polygons = [];
   let activo = 0;
@@ -709,23 +727,11 @@
     // *** FUNCIONALIDAD DEL SELECTOR DE PROYECTO ***
     const projectSelect = document.getElementById('project-select');
     
-    // Definir etapas y vistas
+    // Definir etapas y vistas (cada etapa puede usar tamaños propios definidos en sectorSizes)
     const sectores = {
-      // Etapa 1: imagen pendiente (el usuario la subirá más adelante)
-      'etapa-1': {
-        bounds: bounds,
-        files: []
-      },
-      // Etapa 2: imagen incluida en el repo
-      'etapa-2': {
-        bounds: bounds,
-        files: []
-      },
-      // Vista completa general
-      'completo': {
-        bounds: bounds,
-        files: []
-      }
+      'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: [] },
+      'etapa-2': { bounds: makeBounds(sectorSizes['etapa-2'].width, sectorSizes['etapa-2'].height), files: [] },
+      'completo': { bounds: makeBounds(sectorSizes['completo'].width, sectorSizes['completo'].height), files: [] }
     };
 
     projectSelect.addEventListener('change', function() {
@@ -733,7 +739,8 @@
       
       if (selectedSector && sectores[selectedSector]) {
         console.log(`Cambiando a ${selectedSector}`);
-        
+        // establecer el sector actual
+        currentSector = selectedSector;
         // Limpiar polígonos existentes
         polygons.forEach(pol => {
           if (pol.poly) map.removeLayer(pol.poly);
@@ -741,17 +748,20 @@
         });
         polygons.length = 0;
         
-        // Ajustar vista del mapa al sector/etapa seleccionado
-        map.fitBounds(sectores[selectedSector].bounds);
+        // Obtener dimensiones específicas del sector
+        const dims = sectorSizes[selectedSector] || sectorSizes['completo'];
+        // Ajustar vista del mapa al sector/etapa seleccionado usando sus dimensiones
+        try { map.setMaxBounds(makeBounds(dims.width, dims.height)); } catch (e) {}
+        try { map.fitBounds(makeBounds(dims.width, dims.height)); } catch (e) {}
 
-        // Cambiar overlay según la etapa seleccionada
+        // Cambiar overlay según la etapa seleccionada (pasando dims cuando aplique)
         if (selectedSector === 'etapa-2') {
-          setOverlay('ETAPA 2 FINAL JPG (1).jpg');
+          setOverlay('ETAPA 2 img.webp', dims);
         } else if (selectedSector === 'etapa-1') {
-          // Etapa 1 pendiente: quitar overlay para indicar ausencia
-          setOverlay(null);
+          // Etapa 1 pendiente: quitar overlay pero aplicar bounds del sector
+          setOverlay('ETAPA 1 img.png', dims);
         } else if (selectedSector === 'completo') {
-          setOverlay('image.png');
+          setOverlay('2.webp', dims);
         }
         
         // Cargar solo los archivos del sector/etapa seleccionado
