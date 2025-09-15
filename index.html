@@ -27,7 +27,7 @@
           <label for="project-select">Etapa:</label>
           <select id="project-select">
             <option value="">-- Seleccione --</option>
-            <option value="etapa-1">Etapa 1 (pendiente)</option>
+            <option value="etapa-1">Etapa 1</option>
             <option value="etapa-2">Etapa 2</option>
             <option value="completo">Vista Completa</option>
           </select>
@@ -313,9 +313,25 @@
      ============================================= -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+  // Precarga de imágenes para evitar demoras en el renderizado
+  const imageCache = {};
+  const preloadImages = ['ETAPA GENERAL.webp', 'ETAPA 1 img.webp', 'ETAPA 2 img.webp'];
+  
+  // Función para precargar imágenes
+  function preloadImage(src) {
+    if (!imageCache[src]) {
+      const img = new Image();
+      img.onload = () => { imageCache[src] = true; };
+      img.src = src;
+    }
+  }
+  
+  // Precargar todas las imágenes al inicio
+  preloadImages.forEach(preloadImage);
+
   // Tamaños por-sector (puedes ajustar estos valores en el código)
   const sectorSizes = {
-    'etapa-1': { width: 3500, height: 3848 },
+    'etapa-1': { width: 2300, height: 3898 },
     'etapa-2': { width: 2500, height: 4539 },
     'completo': { width: 3500, height: 3848 }
   };
@@ -342,7 +358,11 @@
 
   map.fitBounds(bounds);
   map.scrollWheelZoom.enable();
-  // Manejo dinámico del overlay de imagen (mapa base por etapa)
+  
+  // Cache de overlays para evitar recrear las capas
+  const overlayCache = {};
+  
+  // Manejo optimizado del overlay de imagen (mapa base por etapa)
   let currentOverlay = null;
   function setOverlay(imageSrc, dims) {
     // Remover overlay anterior si existe
@@ -358,12 +378,27 @@
         try { map.setMaxBounds(bounds); } catch (e) { /* map no inicializado aún */ }
         try { map.fitBounds(bounds); } catch (e) { /* ignore */ }
       }
-      currentOverlay = L.imageOverlay(imageSrc, bounds).addTo(map);
+      
+      // Usar cache para overlay si ya existe
+      if (overlayCache[imageSrc]) {
+        currentOverlay = overlayCache[imageSrc];
+      } else {
+        currentOverlay = L.imageOverlay(imageSrc, bounds);
+        overlayCache[imageSrc] = currentOverlay;
+      }
+      currentOverlay.addTo(map);
     }
   }
 
-  // Imagen por defecto (vista completa) usando dimensiones específicas
-  setOverlay('ETAPA GENERAL.webp', sectorSizes['completo']);
+  // Imagen por defecto (vista completa) usando dimensiones específicas - precargada
+  if (imageCache['ETAPA GENERAL.webp']) {
+    setOverlay('ETAPA GENERAL.webp', sectorSizes['completo']);
+  } else {
+    // Esperar a que se cargue la imagen antes de mostrarla
+    const img = new Image();
+    img.onload = () => setOverlay('ETAPA GENERAL.webp', sectorSizes['completo']);
+    img.src = 'ETAPA GENERAL.webp';
+  }
 
   const polygons = [];
   let activo = 0;
@@ -741,28 +776,34 @@
         console.log(`Cambiando a ${selectedSector}`);
         // establecer el sector actual
         currentSector = selectedSector;
-        // Limpiar polígonos existentes
-        polygons.forEach(pol => {
-          if (pol.poly) map.removeLayer(pol.poly);
-          if (pol.punto) map.removeLayer(pol.punto);
-        });
-        polygons.length = 0;
         
         // Obtener dimensiones específicas del sector
         const dims = sectorSizes[selectedSector] || sectorSizes['completo'];
-        // Ajustar vista del mapa al sector/etapa seleccionado usando sus dimensiones
-        try { map.setMaxBounds(makeBounds(dims.width, dims.height)); } catch (e) {}
-        try { map.fitBounds(makeBounds(dims.width, dims.height)); } catch (e) {}
-
-        // Cambiar overlay según la etapa seleccionada (pasando dims cuando aplique)
-        if (selectedSector === 'etapa-2') {
-          setOverlay('ETAPA 2 img.webp', dims);
-        } else if (selectedSector === 'etapa-1') {
-          // Etapa 1 pendiente: quitar overlay pero aplicar bounds del sector
-          setOverlay('ETAPA 1 img.png', dims);
-        } else if (selectedSector === 'completo') {
-          setOverlay('ETAPA GENERAL.webp', dims);
+        const newBounds = makeBounds(dims.width, dims.height);
+        
+        // Limpiar polígonos existentes solo si es necesario
+        if (polygons.length > 0) {
+          polygons.forEach(pol => {
+            if (pol.poly) map.removeLayer(pol.poly);
+            if (pol.punto) map.removeLayer(pol.punto);
+          });
+          polygons.length = 0;
         }
+        
+        // Ajustar vista del mapa al sector/etapa seleccionado
+        map.setMaxBounds(newBounds);
+        map.fitBounds(newBounds);
+
+        // Cambiar overlay según la etapa seleccionada
+        let imageName;
+        if (selectedSector === 'etapa-2') {
+          imageName = 'ETAPA 2 img.webp';
+        } else if (selectedSector === 'etapa-1') {
+          imageName = 'ETAPA 1 img.webp';
+        } else {
+          imageName = 'ETAPA GENERAL.webp';
+        }
+        setOverlay(imageName, dims);
         
         // Cargar solo los archivos del sector/etapa seleccionado
         sectores[selectedSector].files.forEach(file => {
