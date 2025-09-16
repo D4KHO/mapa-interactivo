@@ -4,20 +4,105 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lotes Interactivos - Casa Bonita</title>
+  <meta name="description" content="Mapa interactivo de lotes de Casa Bonita Residencial">
+  <link rel="icon" href="../assets/img/faviconCasabonita.png" type="image/png">
+
+  <!-- Preconnect to Google Fonts for faster loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="style_header_footer.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet.draw CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
   <link rel="stylesheet" href="style.css">
-  
-  <!-- Barra de Estados de Lotes -->
-  <div class="status-bar">
-    <button class="status-btn disponible">Disponible</button>
-    <button class="status-btn reservado">Reservado</button>
-    <button class="status-btn vendido">Vendido</button>
-    <button class="status-btn bloqueado">Bloqueado</button>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Estilos movidos a style.css -->
+</head>
+
+<body>
+
+    <header class="project-header">
+      <div class="header-contenido">
+        <div class="project-selector">
+          <label for="project-select">Etapa:</label>
+          <select id="project-select">
+            <option value="">-- Seleccione --</option>
+            <option value="etapa-1">Etapa 1</option>
+            <option value="etapa-2">Etapa 2</option>
+            <option value="completo">Vista Completa</option>
+          </select>
+        </div>
+
+        <!-- Menú central (botones de navegación) -->
+        <div class="header-menu">
+          <button id="btn-areas" class="ui-button">Áreas Comunes</button>
+          <button id="btn-lotes" class="ui-button">Lotes</button>
+        </div>
+
+        <div class="header-spacer"></div>
+      </div>
+
+      <!-- Barra de Estados de Lotes (aparece sobre el mapa) -->
+      <div class="status-bar">
+        <button class="status-btn disponible">Disponible</button>
+        <button class="status-btn reservado">Reservado</button>
+        <button class="status-btn vendido">Vendido</button>
+        <button class="status-btn bloqueado">Bloqueado</button>
+      </div>
+    </header>
+
+<!-- Project header moved to the top as <header class="project-header"> -->
+
+<!-- =============================================
+     SECCIÓN PRINCIPAL - CONTENEDOR DEL MAPA
+     ============================================= -->
+<section class="map-section">
+  <div class="map-container">
+    <div class="map-wrapper">
+      <div id="info"></div>
+      <div id="map"></div>
+        <div class="ui-controls-section">
+
+  <!-- Controles inferiores centrales (zoom y navegación) -->
+  <div class="bottom-center-controls">
+    <button id="btn-home" class="control-button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9,22 9,12 15,12 15,22"/>
+      </svg>
+    </button>
+    <button id="btn-cam-up" class="control-button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 15l-6-6-6 6"/>
+      </svg>
+    </button>
+    <button id="btn-cam-down" class="control-button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+    <button id="btn-zoom-in" class="control-button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="M21 21l-4.35-4.35"/>
+        <line x1="11" y1="8" x2="11" y2="14"/>
+        <line x1="8" y1="11" x2="14" y2="11"/>
+      </svg>
+    </button>
+    <button id="btn-zoom-out" class="control-button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="M21 21l-4.35-4.35"/>
+        <line x1="8" y1="11" x2="14" y2="11"/>
+      </svg>
+    </button>
+  </div>
   </div>
 
-  
-  <!-- Panel lateral con diseño moderno -->
-  <div id="side-panel">
+  <!-- Panel de información de lotes -->
+  <article id="side-panel" class="info-panel">
     <div class="panel-header">
       <a href="#" class="back-button">&lt; Volver</a>
       <button id="close-panel">&times;</button>
@@ -43,24 +128,10 @@
     <div class="panel-footer">
       <a href="#" id="whatsapp-link" class="whatsapp-button" target="_blank">Contáctanos por WhatsApp</a>
     </div>
-  </div>
-
-  <!-- Interfaz de Usuario Adicional -->
-  <div class="top-left-menu">
-    <button id="btn-areas" class="ui-button">Áreas Comunes</button>
-    <button id="btn-lotes" class="ui-button">Lotes</button>
-  </div>
-
-  <div class="bottom-center-controls">
-    <button id="btn-home" class="control-button">🏠</button>
-    <button id="btn-cam-up" class="control-button">⬆️</button>
-    <button id="btn-cam-down" class="control-button">⬇️</button>
-    <button id="btn-zoom-in" class="control-button">➕</button>
-    <button id="btn-zoom-out" class="control-button">➖</button>
-  </div>
+  </article>
 
   <!-- Panel de Búsqueda de Lotes -->
-  <div id="search-panel" class="search-panel">
+  <article id="search-panel" class="search-panel">
      <div class="panel-header">
       <h3>Buscador de lotes</h3>
       <button id="close-search-panel">&times;</button>
@@ -84,106 +155,271 @@
         <div class="sort-by" style="flex: 1;">
           <label style="font-size: 14px; color: #888; display: block; margin-bottom: 5px;">Ordenar por</label>
           <select class="custom-select" id="sort-by-select">
-            <option value="area-asc">Área: de menor a mayor</option>
-            <option value="area-desc">Área: de mayor a menor</option>
-            <option value="price-asc">Precio: de menor a mayor</option>
-            <option value="price-desc">Precio: de mayor a menor</option>
+            <option value="">Sin orden</option>
+            <option value="area-asc">Área (menor a mayor)</option>
+            <option value="area-desc">Área (mayor a menor)</option>
+            <option value="price-asc">Precio (menor a mayor)</option>
+            <option value="price-desc">Precio (mayor a menor)</option>
           </select>
         </div>
-        <div class="status-filter" style="flex: 1; text-align: right;">
-          <a href="#" class="clear-filters" style="font-size: 12px; display: block; margin-bottom: 5px;">Limpiar filtros</a>
-          <select class="custom-select" id="status-filter-select">
-            <option>Todos</option>
-            <option>Disponible</option>
-            <option>Vendido</option>
-            <option>Reservado</option>
-          </select>
-        </div>
+        <a href="#" class="clear-filters">Limpiar filtros</a>
       </div>
-
-      <div class="results-count" id="results-count-display"></div>
+      <div class="results-count">
+        <span id="results-count-display">Mostrando 0 lote(s)</span>
+      </div>
     </div>
-  </div>
+  </article>
 
   <!-- Panel de Áreas Comunes -->
-  <div id="areas-panel" class="areas-panel">
+  <article id="areas-panel" class="areas-panel">
     <div class="panel-header">
-        <h3>Áreas Comunes</h3>
-        <button id="close-areas-panel">&times;</button>
+      <h3>Áreas Comunes</h3>
+      <button id="close-areas-panel">&times;</button>
     </div>
-    <div id="areas-list"></div>
+    <div class="panel-content">
+      <div id="areas-list">
+        <!-- Los elementos de áreas se generarán dinámicamente -->
+      </div>
+    </div>
+  </article>
+
+    </div>
   </div>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.157.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.157.0/examples/jsm/"
-      }
-    }
-  </script>
 
-</head>
-<body>
+</section>
 
-<!-- Header con selector de proyecto -->
-<div class="project-header">
-  <div class="project-selector">
-    <label for="project-select">Proyecto:</label>
-    <select id="project-select">
-      <option value="">-- Seleccione --</option>
-      <option value="sector-a">Sector A</option>
-      <option value="sector-b">Sector B</option>
-      <option value="sector-c">Sector C</option>
-      <option value="sector-d">Sector D</option>
-      <option value="sector-e">Sector E</option>
-      <option value="completo">Vista Completa</option>
-    </select>
-  </div>
+<!-- =============================================
+     FOOTER
+     ============================================= -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <!-- Logo y descripción -->
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="LOGO PNG BLANCO.webp" alt="Casa Bonita Logo" class="footer-logo-img" loading="lazy">
+                    </div>
+                    <p class="footer-description">
+                       Tu hogar soñado en Piura te espera. Únete a las más de 300 familias que ya eligieron Casa Bonita Residencial como la mejor opción para su futuro.
+                    </p>
+                    <!-- social links removed -->
+                </div>
 
-      <!-- Barra de Estados de Lotes - ahora dentro del contenedor -->
-    <div class="status-bar">
-      <button class="status-btn disponible">Disponible</button>
-      <button class="status-btn reservado">Reservado</button>
-      <button class="status-btn vendido">Vendido</button>
-      <button class="status-btn bloqueado">Bloqueado</button>
+                <!-- Enlaces rápidos -->
+                <div class="footer-section">
+                    <h4>Enlaces rápidos</h4>
+                    <ul class="footer-links">
+                        <a href="../index.html">Inicio</a>
+                        <a href="../index.html#proyecto">Sobre el proyecto</a>
+                        <a href="../index.html#modelos">Modelos de vivienda</a>
+                        <a href="../index.html#techo-propio">Programa Techo Propio</a>
+                        <a href="../index.html#proceso">Proceso de compra</a>
+                    </ul>
+                </div>
+
+                <!-- Información -->
+                <div class="footer-section">
+                    <h4>Información</h4>
+                    <ul class="footer-links">
+                        <li><a href="../informacion.html#libro-reclamaciones">Libro de Reclamaciones</a></li>
+                        <li><a href="../informacion.html#preguntas-frecuentes">Preguntas frecuentes</a></li>
+                        <li><a href="../informacion.html#terminos">Términos y condiciones</a></li>
+                        <li><a href="../informacion.html#privacidad">Política de privacidad</a></li>
+                        <li><a href="../informacion.html#informacion">¿Quiénes somos?</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contacto -->
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <div class="footer-contact">
+                        <div class="footer-contact-item">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                            </svg>
+                            <span><a href="https://wa.me/51946552086" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">+51 946 552 086</a></span>
+                        </div>
+                         <div class="footer-contact-item">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            <span><a href="https://maps.app.goo.gl/6cWEoPFX8cWQvAre9" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">AAHH La Primavera MZ B 1Lote26. CASTILLA</a></span>
+                        </div>
+                        <div class="footer-contact-item">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            <span><a href="https://maps.app.goo.gl/deNwYLTT2i6a2jfB7" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">Calle San Cristóbal 217 - Sta. Isabel. Piura</a></span>
+                        </div>
+                        <div class="footer-contact-item">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                            <span>Lun - Sab: 9:00 - 18:00</span>
+                        </div>
+                        <div class="footer-contact-item">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            <span>asignaciones@casabonita.pe</span>
+                        </div>
+                        <div class="footer-whatsapp-button">
+                            <button class="btn btn-whatsapp-footer" onclick="openWhatsApp()">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.106"></path>
+                                </svg>
+                                <span>Escríbenos por WhatsApp</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer bottom -->
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    © 2025 Casa Bonita Residencial. Todos los derechos reservados.
+                </div>
+                <div class="footer-approval">
+                    <span> Bajo el formato Techo Propio </span>
+                    <div class="approval-badge">
+                        <div class="approval-icon">MV</div>
+                        <a href="https://www.mivivienda.com.pe/" target="_blank" rel="noopener noreferrer"><span>Fondo MIVIVIENDA</span></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-disclaimer" style="margin-top: 20px; font-size: 0.8em; color: #999; text-align: center; padding: 0 20px;">
+                    Disclaimer: El proyecto "Casa Bonita Residencial" está en desarrollo, bajo los estandares que señala el MINISTERIO DE VIVIENDA, CONSTRUCCIÓN Y SANEAMIENTO de Perú bajo la RESOLUCIÓN MINISTERIAL Nº 0104-2025-VIVIENDA, que regula el Reglamento Operativo Para Acceder al Bono Familiar Habitacional en la Modalidad de Adquisición de Vivienda Nueva Techo Propio del Fondo MIVIVIENDA. Las imágenes y descripciones son referenciales y pueden cambiar sin previo aviso. Esta información no constituye una oferta contractual. Para detalles actualizados, contáctenos por nuestros canales oficiales. RUC: 20613704214.
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp flotante -->
+    <div class="whatsapp-float">
+        <button onclick="openWhatsApp()" class="whatsapp-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.106"></path>
+            </svg>
+        </button>
     </div>
 
-</div>
+    </div> <!-- Fin del contenedor page-content -->
 
-<!-- Contenedor principal del mapa -->
-<div class="map-container">
-  <div class="map-wrapper">
-    
-    <div id="info">← ↑ ↓ → mover | + / - escalar | R rotar | Tab cambiar lote</div>
-    <div id="map"></div>
-  </div>
-</div>
-
+<!-- =============================================
+     SCRIPTS - FUNCIONALIDAD DEL MAPA
+     ============================================= -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet.draw JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 <script>
-  const width = 6991;
-  const height = 3955;
-  const bounds = [[0, 0], [height, width]];
+  // Precarga de imágenes para evitar demoras en el renderizado
+  const imageCache = {};
+  const preloadImages = ['ETAPA GENERAL.webp', 'ETAPA 1 img.webp', 'ETAPA 2 img.webp'];
+  
+  // Función para precargar imágenes
+  function preloadImage(src) {
+    if (!imageCache[src]) {
+      const img = new Image();
+      img.onload = () => { imageCache[src] = true; };
+      img.src = src;
+    }
+  }
+  
+  // Precargar todas las imágenes al inicio
+  preloadImages.forEach(preloadImage);
+
+  // Tamaños por-sector (puedes ajustar estos valores en el código)
+  const sectorSizes = {
+    'etapa-1': { width: 2300, height: 3898 },
+    'etapa-2': { width: 2000, height: 5457 },
+    'completo': { width: 3500, height: 3848 }
+  };
+
+  // Helper para crear bounds a partir de width/height
+  function makeBounds(width, height) {
+    return [[0, 0], [height, width]];
+  }
+
+  // Valores iniciales: usar 'etapa-1' como default para crear el mapa
+  let currentSector = 'etapa-1';
+  let bounds = makeBounds(sectorSizes[currentSector].width, sectorSizes[currentSector].height);
 
   const map = L.map('map', {
     crs: L.CRS.Simple,
     minZoom: -3,
     maxZoom: 2,
-    zoomControl: true,
+    zoomControl: false,
+    attributionControl: false, // Elimina la marca de agua de Leaflet
     maxBounds: bounds,
-    maxBoundsViscosity: 1.0,
+    maxBoundsViscosity: 1.0, // Límites duros sin rebote al centro
     keyboard: false
   });
 
   map.fitBounds(bounds);
   map.scrollWheelZoom.enable();
-  L.imageOverlay('plano.jpg', bounds).addTo(map);
+  
+  // Cache de overlays para evitar recrear las capas
+  const overlayCache = {};
+
+  /* Modal para mostrar coordenadas y copiarlas */
+  const coordModalHtml = `
+    <div id="coord-modal" style="display:none; position:fixed; right:20px; top:80px; z-index:10000; background:#fff; border:1px solid #ccc; padding:10px; width:320px; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <strong>Coordenadas (copiar)</strong>
+        <button id="coord-modal-close" style="background:none;border:none;font-size:16px;">&times;</button>
+      </div>
+      <textarea id="coord-text" style="width:100%;height:180px;font-size:12px;">[]</textarea>
+      <div style="margin-top:6px;text-align:right;"><button id="coord-copy" class="ui-button">Copiar</button></div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', coordModalHtml);
+
+  
+  // Manejo optimizado del overlay de imagen (mapa base por etapa)
+  let currentOverlay = null;
+  function setOverlay(imageSrc, dims) {
+    // Remover overlay anterior si existe
+    if (currentOverlay) {
+      try { map.removeLayer(currentOverlay); } catch (e) { console.warn('No se pudo eliminar overlay previo', e); }
+      currentOverlay = null;
+    }
+    // Añadir nuevo overlay si imageSrc definido
+    if (imageSrc) {
+      // Si se pasan dimensiones, actualizar bounds antes de aplicar
+      if (dims && dims.width && dims.height) {
+        bounds = makeBounds(dims.width, dims.height);
+        try { map.setMaxBounds(bounds); } catch (e) { /* map no inicializado aún */ }
+        try { map.fitBounds(bounds); } catch (e) { /* ignore */ }
+      }
+      
+      // Usar cache para overlay si ya existe
+      if (overlayCache[imageSrc]) {
+        currentOverlay = overlayCache[imageSrc];
+      } else {
+        currentOverlay = L.imageOverlay(imageSrc, bounds);
+        overlayCache[imageSrc] = currentOverlay;
+      }
+      currentOverlay.addTo(map);
+    }
+  }
+
+  // Imagen por defecto: mostrar ETAPA 1 al inicio
+  if (imageCache['ETAPA 1 img.webp']) {
+    setOverlay('ETAPA 1 img.webp', sectorSizes['etapa-1']);
+  } else {
+    // Esperar a que se cargue la imagen antes de mostrarla
+    const img = new Image();
+    img.onload = () => setOverlay('ETAPA 1 img.webp', sectorSizes['etapa-1']);
+    img.src = 'ETAPA 1 img.webp';
+  }
 
   const polygons = [];
   let activo = 0;
-
-
 
   function cargarLotes(archivo) {
     fetch(archivo)
@@ -257,7 +493,16 @@
     a.punto.setLatLng(centro);
   }
 
+  // Eventos de teclado: solo prevenir default para teclas que la app maneja.
   document.addEventListener('keydown', e => {
+    // Si el usuario está usando una tecla modificadora (Ctrl/Meta/Alt), no interferir
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    // Lista de teclas manejadas por la app
+    const handledKeys = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','-','t','r','Tab','Enter'];
+
+    if (!handledKeys.includes(e.key)) return; // dejar que el navegador maneje F5, F12, etc.
+
     switch (e.key) {
       case 'ArrowUp': mover(0, 1); break;
       case 'ArrowDown': mover(0, -1); break;
@@ -271,362 +516,382 @@
         activo = (activo + 1) % polygons.length;
         document.getElementById('info').innerText =
           `Polígono activo: ${activo + 1} de ${polygons.length}`;
-        e.preventDefault();
+        e.preventDefault(); // prevenir tabulación por defecto cuando usamos Tab internamente
         break;
       case 'Enter':
         const a = getActivo();
-        const line = a.coords.map(([y, x]) => `[${y.toFixed(2)},${x.toFixed(2)}]`).join(',');
-        console.log(`[${line}],`);
+        if (a) {
+          const line = a.coords.map(([y, x]) => `[${y.toFixed(2)},${x.toFixed(2)}]`).join(',');
+          console.log(`[${line}],`);
+        }
         break;
     }
+    // Prevenir comportamiento por defecto para las teclas que maneja la app (excepto combinaciones)
     e.preventDefault();
   });
 
- // Coordenadas de los lotes disponibles con información detallada
-    const lotesDisponibles = [
-      {
-        x: 9.15, y: 0.50, z: 15.28,
-        manzana: 'K1', lote: '21',
-        estado: 'Disponible',
-        precioFinanciado: '$ 7,300.00',
-        precioContado: '$ 6,600.00',
-        tipo: 'Residencial',
-        area: '116.56 m²',
-        dimensiones: {
-          izquierda: '19.43 ML',
-          derecha: '19.43 ML',
-          frente: '6.00 ML',
-          fondo: '6.00 ML'
-        },
-        whatsappLink: 'https://wa.me/1234567890?text=Hola,%20estoy%20interesado%20en%20el%20lote%20K1-21'
-      }
-    ];
-
-        // Referencias a todos los paneles y botones
-    const sidePanel = document.getElementById('side-panel');
-    const searchPanel = document.getElementById('search-panel');
-    const areasPanel = document.getElementById('areas-panel');
-    const closePanelButton = document.getElementById('close-panel');
-    const closeSearchPanelButton = document.getElementById('close-search-panel');
-    const closeAreasPanelButton = document.getElementById('close-areas-panel');
-    const btnAreas = document.getElementById('btn-areas');
-    const btnLotes = document.getElementById('btn-lotes');
-    const areasList = document.getElementById('areas-list');
-    let selectedLote = null;
-
-    // --- Lógica para Filtros y Buscador ---
-    function setupDualRangeSliders() {
-      const sliders = document.querySelectorAll('.dual-range-slider');
-      sliders.forEach(slider => {
-        const minInput = slider.querySelector('input[type=range]:first-of-type');
-        const maxInput = slider.querySelector('input[type=range]:last-of-type');
-        const label = document.getElementById(`${minInput.id.split('-')[0]}-range-label`);
-
-        const updateLabel = () => {
-          const minVal = parseInt(minInput.value);
-          const maxVal = parseInt(maxInput.value);
-          if (label.id.includes('area')) {
-            label.textContent = `${minVal} m² - ${maxVal} m²`;
-          } else {
-            label.textContent = `$${minVal.toLocaleString()} - $${maxVal.toLocaleString()}`;
-          }
-        };
-
-        const filterOnChange = () => {
-            filterAndRenderLotes();
-        }
-
-        minInput.addEventListener('input', () => {
-          if (parseInt(minInput.value) > parseInt(maxInput.value)) {
-            minInput.value = maxInput.value;
-          }
-          updateLabel();
-          filterOnChange();
-        });
-
-        maxInput.addEventListener('input', () => {
-          if (parseInt(maxInput.value) < parseInt(minInput.value)) {
-            maxInput.value = minInput.value;
-          }
-          updateLabel();
-          filterOnChange();
-        });
-
-        updateLabel();
-      });
+  // Datos de lotes disponibles
+  const lotesDisponibles = [
+    {
+      x: 9.15, y: 0.50, z: 15.28,
+      manzana: 'K1', lote: '21',
+      estado: 'Disponible',
+      precioFinanciado: '$ 7,300.00',
+      precioContado: '$ 6,600.00',
+      tipo: 'Residencial',
+      area: '116.56 m²',
+      dimensiones: {
+        izquierda: '19.43 ML',
+        derecha: '19.43 ML',
+        frente: '6.00 ML',
+        fondo: '6.00 ML'
+      },
+      whatsappLink: 'https://wa.me/1234567890?text=Hola,%20estoy%20interesado%20en%20el%20lote%20K1-21'
     }
+  ];
 
-    function resetFilters() {
-      // Restablecer sliders de rango
-      const areaMin = document.getElementById('area-min');
-      const areaMax = document.getElementById('area-max');
-      const priceMin = document.getElementById('price-min');
-      const priceMax = document.getElementById('price-max');
+  const areasComunes = [
+    { nombre: 'Piscina', coords: { x: 0, y: 0, z: 0 } },
+    { nombre: 'Cancha de Tenis', coords: { x: 10, y: 0, z: 10 } },
+    { nombre: 'Parque Infantil', coords: { x: -10, y: 0, z: -10 } }
+  ];
 
-      areaMin.value = areaMin.min;
-      areaMax.value = areaMax.max;
-      priceMin.value = priceMin.min;
-      priceMax.value = priceMax.max;
-   // Restablecer menús desplegables
-      document.getElementById('sort-by-select').selectedIndex = 0;
-      document.getElementById('status-filter-select').selectedIndex = 0;
+  // Referencias a elementos DOM
+  const sidePanel = document.getElementById('side-panel');
+  const searchPanel = document.getElementById('search-panel');
+  const areasPanel = document.getElementById('areas-panel');
+  const closePanelButton = document.getElementById('close-panel');
+  const closeSearchPanelButton = document.getElementById('close-search-panel');
+  const closeAreasPanelButton = document.getElementById('close-areas-panel');
+  const btnAreas = document.getElementById('btn-areas');
+  const btnLotes = document.getElementById('btn-lotes');
+  const areasList = document.getElementById('areas-list');
+  let selectedLote = null;
 
-      // Actualizar etiquetas y renderizar lotes
-      setupDualRangeSliders(); // Llama a la función que actualiza las etiquetas
-      filterAndRenderLotes();
-    }
+  // Funciones de filtros
+  function setupDualRangeSliders() {
+    const sliders = document.querySelectorAll('.dual-range-slider');
+    sliders.forEach(slider => {
+      const minInput = slider.querySelector('input[type=range]:first-of-type');
+      const maxInput = slider.querySelector('input[type=range]:last-of-type');
+      const label = document.getElementById(`${minInput.id.split('-')[0]}-range-label`);
 
-     function filterAndRenderLotes() {
-      const areaMin = parseInt(document.getElementById('area-min').value);
-      const areaMax = parseInt(document.getElementById('area-max').value);
-      const priceMin = parseInt(document.getElementById('price-min').value);
-      const priceMax = parseInt(document.getElementById('price-max').value);
-      const sortBy = document.getElementById('sort-by-select').value;
-      
-      const resultsContainer = document.querySelector('#search-panel .panel-content');
-      resultsContainer.querySelectorAll('.lote-result-card').forEach(card => card.remove());
-
-      let filteredLotes = lotesDisponibles.filter(lote => {
-        const area = parseFloat(lote.area.replace(/[^0-9.]/g, ''));
-        const price = parseFloat(lote.precioContado.replace(/[^0-9.]/g, ''));
-        return area >= areaMin && area <= areaMax && price >= priceMin && price <= priceMax;
-      });
-
-      filteredLotes.sort((a, b) => {
-        const areaA = parseFloat(a.area.replace(/[^0-9.]/g, ''));
-        const areaB = parseFloat(b.area.replace(/[^0-9.]/g, ''));
-        const priceA = parseFloat(a.precioContado.replace(/[^0-9.]/g, ''));
-        const priceB = parseFloat(b.precioContado.replace(/[^0-9.]/g, ''));
-
-        switch (sortBy) {
-          case 'area-asc': return areaA - areaB;
-          case 'area-desc': return areaB - areaA;
-          case 'price-asc': return priceA - priceB;
-          case 'price-desc': return priceB - priceA;
-          default: return 0;
-        }
-      });
-
-      const countDisplay = document.getElementById('results-count-display');
-      countDisplay.textContent = `Mostrando ${filteredLotes.length} lote(s)`;
-
-      filteredLotes.forEach(lote => {
-        const card = document.createElement('div');
-        card.className = 'lote-result-card';
-        card.innerHTML = `
-          <h4>Mz. ${lote.manzana} - Lote ${lote.lote}</h4>
-          <div class="card-info-grid">
-            <div><span class="label">Estado</span><span class="value available">${lote.estado}</span></div>
-            <div><span class="label">Área</span><span class="value">${lote.area}</span></div>
-            <div><span class="label">Precio</span><span class="value">${lote.precioContado}</span></div>
-          </div>
-          <button class="ver-mas-btn">Ver más</button>
-        `;
-        resultsContainer.appendChild(card);
-      });
-    }
-
-    const areasComunes = [
-      { nombre: 'Piscina', coords: { x: 0, y: 0, z: 0 } },
-      { nombre: 'Cancha de Tenis', coords: { x: 10, y: 0, z: 10 } },
-      { nombre: 'Parque Infantil', coords: { x: -10, y: 0, z: -10 } }
-    ];
-    
-    // *** INICIALIZACIÓN - Esta es la parte clave que faltaba ***
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('Inicializando controles...');
-      
-      // Configurar filtros
-      setupDualRangeSliders();
-      filterAndRenderLotes();
-      
-      // Event listeners para filtros
-      document.getElementById('sort-by-select').addEventListener('change', filterAndRenderLotes);
-      document.querySelector('.clear-filters').addEventListener('click', (e) => {
-        e.preventDefault();
-        resetFilters();
-      });
-
-      // --- Lógica de Paneles ---
-      function hideAllPanels() {
-        sidePanel.classList.remove('visible');
-        searchPanel.classList.remove('visible');
-        areasPanel.classList.remove('visible');
-        // Desmarcar todos los botones
-        btnLotes.classList.remove('active');
-        btnAreas.classList.remove('active');
-      }
-
-      function renderAreasComunes() {
-        areasList.innerHTML = '';
-        for (const area of areasComunes) {
-          const item = document.createElement('div');
-          item.className = 'area-item';
-          item.textContent = area.nombre;
-          item.onclick = () => {
-            // Futuro: Mostrar fotos o info del área
-            alert(`Has hecho clic en ${area.nombre}`);
-          };
-          areasList.appendChild(item);
-        }
-      }
-
-      // Event listeners para botones de paneles
-      btnLotes.addEventListener('click', () => {
-        console.log('Botón Lotes clickeado');
-        hideAllPanels();
-        searchPanel.classList.add('visible');
-        btnLotes.classList.add('active');
-      });
-
-      btnAreas.addEventListener('click', () => {
-        console.log('Botón Áreas clickeado');
-        hideAllPanels();
-        areasPanel.classList.add('visible');
-        btnAreas.classList.add('active');
-        renderAreasComunes();
-      });
-
-      // Event listeners para cerrar paneles
-      closePanelButton.addEventListener('click', () => {
-        console.log('Cerrando panel principal');
-        hideAllPanels();
-      });
-      closeSearchPanelButton.addEventListener('click', () => {
-        console.log('Cerrando panel de búsqueda');
-        hideAllPanels();
-      });
-      closeAreasPanelButton.addEventListener('click', () => {
-        console.log('Cerrando panel de áreas');
-        hideAllPanels();
-      });
-
-      // *** CONTROLES DE ZOOM CORREGIDOS PARA LEAFLET ***
-      document.getElementById('btn-zoom-in').addEventListener('click', () => {
-        console.log('Zoom in');
-        map.zoomIn();
-      });
-
-      document.getElementById('btn-zoom-out').addEventListener('click', () => {
-        console.log('Zoom out');
-        map.zoomOut();
-      });
-
-      document.getElementById('btn-cam-up').addEventListener('click', () => {
-        console.log('Pan arriba');
-        map.panBy([0, -50]); // Mover hacia arriba
-      });
-
-      document.getElementById('btn-cam-down').addEventListener('click', () => {
-        console.log('Pan abajo');
-        map.panBy([0, 50]); // Mover hacia abajo
-      });
-
-      document.getElementById('btn-home').addEventListener('click', () => {
-        console.log('Vista inicial');
-        map.fitBounds(bounds); // Volver a la vista inicial
-      });
-
-      // *** FUNCIONALIDAD DEL SELECTOR DE PROYECTO ***
-      const projectSelect = document.getElementById('project-select');
-      
-      // Definir las coordenadas de cada sector
-      const sectores = {
-        'sector-a': {
-          bounds: [[0, 0], [height/5, width/3]],
-          files: ['lotes_A.json']
-        },
-        'sector-b': {
-          bounds: [[0, width/3], [height/5, 2*width/3]],
-          files: ['lotes_B.json']
-        },
-        'sector-c': {
-          bounds: [[height/5, 0], [2*height/5, width/3]],
-          files: ['lotes_C.json']
-        },
-        'sector-d': {
-          bounds: [[height/5, width/3], [2*height/5, 2*width/3]],
-          files: ['lotes_D.json']
-        },
-        'sector-e': {
-          bounds: [[2*height/5, 0], [height, width]],
-          files: ['lotes_E.json']
-        },
-        'completo': {
-          bounds: bounds,
-          files: ['lotes_A.json', 'lotes_B.json', 'lotes_C.json', 'lotes_D.json', 'lotes_E.json']
+      const updateLabel = () => {
+        const minVal = parseInt(minInput.value);
+        const maxVal = parseInt(maxInput.value);
+        if (label.id.includes('area')) {
+          label.textContent = `${minVal} m² - ${maxVal} m²`;
+        } else {
+          label.textContent = `$${minVal.toLocaleString()} - $${maxVal.toLocaleString()}`;
         }
       };
 
-      projectSelect.addEventListener('change', function() {
-        const selectedSector = this.value;
+      const filterOnChange = () => {
+        filterAndRenderLotes();
+      }
+
+      minInput.addEventListener('input', () => {
+        if (parseInt(minInput.value) > parseInt(maxInput.value)) {
+          minInput.value = maxInput.value;
+        }
+        updateLabel();
+        filterOnChange();
+      });
+
+      maxInput.addEventListener('input', () => {
+        if (parseInt(maxInput.value) < parseInt(minInput.value)) {
+          maxInput.value = minInput.value;
+        }
+        updateLabel();
+        filterOnChange();
+      });
+
+      updateLabel();
+    });
+  }
+
+  function resetFilters() {
+    const areaMin = document.getElementById('area-min');
+    const areaMax = document.getElementById('area-max');
+    const priceMin = document.getElementById('price-min');
+    const priceMax = document.getElementById('price-max');
+
+    areaMin.value = areaMin.min;
+    areaMax.value = areaMax.max;
+    priceMin.value = priceMin.min;
+    priceMax.value = priceMax.max;
+
+    document.getElementById('sort-by-select').selectedIndex = 0;
+
+    setupDualRangeSliders();
+    filterAndRenderLotes();
+  }
+
+  function filterAndRenderLotes() {
+    const areaMin = parseInt(document.getElementById('area-min').value);
+    const areaMax = parseInt(document.getElementById('area-max').value);
+    const priceMin = parseInt(document.getElementById('price-min').value);
+    const priceMax = parseInt(document.getElementById('price-max').value);
+    const sortBy = document.getElementById('sort-by-select').value;
+    
+    const resultsContainer = document.querySelector('#search-panel .panel-content');
+    resultsContainer.querySelectorAll('.lote-result-card').forEach(card => card.remove());
+
+    let filteredLotes = lotesDisponibles.filter(lote => {
+      const area = parseFloat(lote.area.replace(/[^0-9.]/g, ''));
+      const price = parseFloat(lote.precioContado.replace(/[^0-9.]/g, ''));
+      return area >= areaMin && area <= areaMax && price >= priceMin && price <= priceMax;
+    });
+
+    filteredLotes.sort((a, b) => {
+      const areaA = parseFloat(a.area.replace(/[^0-9.]/g, ''));
+      const areaB = parseFloat(b.area.replace(/[^0-9.]/g, ''));
+      const priceA = parseFloat(a.precioContado.replace(/[^0-9.]/g, ''));
+      const priceB = parseFloat(b.precioContado.replace(/[^0-9.]/g, ''));
+
+      switch (sortBy) {
+        case 'area-asc': return areaA - areaB;
+        case 'area-desc': return areaB - areaA;
+        case 'price-asc': return priceA - priceB;
+        case 'price-desc': return priceB - priceA;
+        default: return 0;
+      }
+    });
+
+    const countDisplay = document.getElementById('results-count-display');
+    countDisplay.textContent = `Mostrando ${filteredLotes.length} lote(s)`;
+
+    filteredLotes.forEach(lote => {
+      const card = document.createElement('div');
+      card.className = 'lote-result-card';
+      card.innerHTML = `
+        <h4>Mz. ${lote.manzana} - Lote ${lote.lote}</h4>
+        <div class="card-info-grid">
+          <div><span class="label">Estado</span><span class="value available">${lote.estado}</span></div>
+          <div><span class="label">Área</span><span class="value">${lote.area}</span></div>
+          <div><span class="label">Precio</span><span class="value">${lote.precioContado}</span></div>
+        </div>
+        <button class="ver-mas-btn">Ver más</button>
+      `;
+      resultsContainer.appendChild(card);
+    });
+  }
+
+  // Funciones de paneles
+  function hideAllPanels() {
+    sidePanel.classList.remove('visible');
+    searchPanel.classList.remove('visible');
+    areasPanel.classList.remove('visible');
+    btnLotes.classList.remove('active');
+    btnAreas.classList.remove('active');
+  }
+
+  function renderAreasComunes() {
+    areasList.innerHTML = '';
+    for (const area of areasComunes) {
+      const item = document.createElement('div');
+      item.className = 'area-item';
+      item.textContent = area.nombre;
+      item.onclick = () => {
+        alert(`Has hecho clic en ${area.nombre}`);
+      };
+      areasList.appendChild(item);
+    }
+  }
+
+  function updatePanelInfo(lote) {
+    if (!lote) return;
+    
+    document.getElementById('lote-id').textContent = `Mz. ${lote.manzana} - Lote ${lote.lote}`;
+    document.getElementById('lote-estado').textContent = lote.estado || '-';
+    document.getElementById('lote-precio-financiado').textContent = lote.precioFinanciado || '-';
+    document.getElementById('lote-precio-contado').textContent = lote.precioContado || '-';
+    document.getElementById('lote-tipo').textContent = lote.tipo || '-';
+    document.getElementById('lote-area').textContent = lote.area || '-';
+    
+    document.getElementById('dim-izquierda').textContent = lote.dimensiones.izquierda || '-';
+    document.getElementById('dim-derecha').textContent = lote.dimensiones.derecha || '-';
+    document.getElementById('dim-frente').textContent = lote.dimensiones.frente || '-';
+    document.getElementById('dim-fondo').textContent = lote.dimensiones.fondo || '-';
+
+    document.getElementById('whatsapp-link').href = lote.whatsappLink || '#';
+  }
+
+  // *** INICIALIZACIÓN - Esta es la parte clave que faltaba ***
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando controles...');
+    
+    // Configurar filtros
+    setupDualRangeSliders();
+    filterAndRenderLotes();
+    
+    // Event listeners para filtros
+    document.getElementById('sort-by-select').addEventListener('change', filterAndRenderLotes);
+    document.querySelector('.clear-filters').addEventListener('click', (e) => {
+      e.preventDefault();
+      resetFilters();
+    });
+
+    // Event listeners para botones de paneles
+    btnLotes.addEventListener('click', () => {
+      console.log('Botón Lotes clickeado');
+      hideAllPanels();
+      searchPanel.classList.add('visible');
+      btnLotes.classList.add('active');
+    });
+
+    btnAreas.addEventListener('click', () => {
+      console.log('Botón Áreas clickeado');
+      hideAllPanels();
+      areasPanel.classList.add('visible');
+      btnAreas.classList.add('active');
+      renderAreasComunes();
+    });
+
+    // Event listeners para cerrar paneles
+    closePanelButton.addEventListener('click', () => {
+      console.log('Cerrando panel principal');
+      hideAllPanels();
+    });
+    closeSearchPanelButton.addEventListener('click', () => {
+      console.log('Cerrando panel de búsqueda');
+      hideAllPanels();
+    });
+    closeAreasPanelButton.addEventListener('click', () => {
+      console.log('Cerrando panel de áreas');
+      hideAllPanels();
+    });
+
+    // *** CONTROLES DE ZOOM CORREGIDOS PARA LEAFLET ***
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+      console.log('Zoom in');
+      map.zoomIn();
+    });
+
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+      console.log('Zoom out');
+      map.zoomOut();
+    });
+
+    document.getElementById('btn-cam-up').addEventListener('click', () => {
+      console.log('Pan arriba');
+      map.panBy([0, -50]); // Mover hacia arriba
+    });
+
+    document.getElementById('btn-cam-down').addEventListener('click', () => {
+      console.log('Pan abajo');
+      map.panBy([0, 50]); // Mover hacia abajo
+    });
+
+    document.getElementById('btn-home').addEventListener('click', () => {
+      console.log('Vista inicial');
+      map.fitBounds(bounds); // Volver a la vista inicial
+    });
+
+    // *** FUNCIONALIDAD DEL SELECTOR DE PROYECTO ***
+    const projectSelect = document.getElementById('project-select');
+    
+    // Definir etapas y vistas (cada etapa puede usar tamaños propios definidos en sectorSizes)
+    const sectores = {
+      'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: ['lotes_A.json'] },
+      'etapa-2': { bounds: makeBounds(sectorSizes['etapa-2'].width, sectorSizes['etapa-2'].height), files: [] },
+      'completo': { bounds: makeBounds(sectorSizes['completo'].width, sectorSizes['completo'].height), files: [] }
+    };
+
+    projectSelect.addEventListener('change', function() {
+      const selectedSector = this.value;
+      
+      if (selectedSector && sectores[selectedSector]) {
+        console.log(`Cambiando a ${selectedSector}`);
+        // establecer el sector actual
+        currentSector = selectedSector;
         
-        if (selectedSector && sectores[selectedSector]) {
-          console.log(`Cambiando a ${selectedSector}`);
-          
-          // Limpiar polígonos existentes
+        // Obtener dimensiones específicas del sector
+        const dims = sectorSizes[selectedSector] || sectorSizes['completo'];
+        const newBounds = makeBounds(dims.width, dims.height);
+        
+        // Limpiar polígonos existentes solo si es necesario
+        if (polygons.length > 0) {
           polygons.forEach(pol => {
             if (pol.poly) map.removeLayer(pol.poly);
             if (pol.punto) map.removeLayer(pol.punto);
           });
           polygons.length = 0;
-          
-          // Ajustar vista del mapa al sector seleccionado
-          map.fitBounds(sectores[selectedSector].bounds);
-          
-          // Cargar solo los archivos del sector seleccionado
-          sectores[selectedSector].files.forEach(file => {
-            cargarLotes(file);
-          });
-          
-          // Actualizar el info
-          document.getElementById('info').innerText = `Sector: ${selectedSector.toUpperCase()} | ← ↑ ↓ → mover | + / - escalar | R rotar`;
-        } else if (selectedSector === '') {
-          // Vista completa por defecto
-          map.fitBounds(bounds);
-          document.getElementById('info').innerText = '← ↑ ↓ → mover | + / - escalar | R rotar | Tab cambiar lote';
         }
-      });
-
-      // Seleccionar vista completa por defecto
-      projectSelect.value = 'completo';
-      projectSelect.dispatchEvent(new Event('change'));
-
-      // Función para actualizar la información del panel
-      function updatePanelInfo(lote) {
-        if (!lote) return;
         
-        document.getElementById('lote-id').textContent = `Mz. ${lote.manzana} - Lote ${lote.lote}`;
-        document.getElementById('lote-estado').textContent = lote.estado || '-';
-        document.getElementById('lote-precio-financiado').textContent = lote.precioFinanciado || '-';
-        document.getElementById('lote-precio-contado').textContent = lote.precioContado || '-';
-        document.getElementById('lote-tipo').textContent = lote.tipo || '-';
-        document.getElementById('lote-area').textContent = lote.area || '-';
+        // Ajustar vista del mapa al sector/etapa seleccionado
+        map.setMaxBounds(newBounds);
+        map.fitBounds(newBounds);
+
+        // Cambiar overlay según la etapa seleccionada
+        let imageName;
+        if (selectedSector === 'etapa-2') {
+          imageName = 'ETAPA 2 img.webp';
+        } else if (selectedSector === 'etapa-1') {
+          imageName = 'ETAPA 1 img.webp';
+        } else {
+          imageName = 'ETAPA GENERAL.webp';
+        }
+        setOverlay(imageName, dims);
         
-        document.getElementById('dim-izquierda').textContent = lote.dimensiones.izquierda || '-';
-        document.getElementById('dim-derecha').textContent = lote.dimensiones.derecha || '-';
-        document.getElementById('dim-frente').textContent = lote.dimensiones.frente || '-';
-        document.getElementById('dim-fondo').textContent = lote.dimensiones.fondo || '-';
-
-        document.getElementById('whatsapp-link').href = lote.whatsappLink || '#';
+        // Cargar solo los archivos del sector/etapa seleccionado
+        sectores[selectedSector].files.forEach(file => {
+          cargarLotes(file);
+        });
+        
+        // Actualizar el info
+        document.getElementById('info').innerText = `Etapa: ${selectedSector.toUpperCase()} `;
+      } else if (selectedSector === '') {
+        // Vista completa por defecto
+        map.fitBounds(bounds);
+        document.getElementById('info').innerText = '← ↑ ↓ → mover | + / - escalar | R rotar | Tab cambiar lote';
       }
-
-      // Función para mostrar el panel de info del lote
-      function showPanel() {
-        hideAllPanels(); // Ocultar otros paneles antes de mostrar este
-        if (sidePanel) sidePanel.classList.add('visible');
-      }
-
-      // Función para ocultar el panel
-      function hidePanel() {
-        if (sidePanel) sidePanel.classList.remove('visible');
-      }
-
-      console.log('Controles inicializados correctamente');
     });
 
+  // Seleccionar vista 'etapa-1' por defecto
+  projectSelect.value = 'etapa-1';
+  projectSelect.dispatchEvent(new Event('change'));
+
+    // ---- Inicializar Leaflet.draw minimal para copiar coordenadas ----
+    try {
+      const drawLayer = new L.FeatureGroup();
+      map.addLayer(drawLayer);
+      const drawControl = new L.Control.Draw({
+        draw: { polyline: false, polygon: { allowIntersection: false, showArea: false }, rectangle: false, circle: false, marker: false },
+        edit: { featureGroup: drawLayer, edit: false, remove: false }
+      });
+      map.addControl(drawControl);
+
+      map.on(L.Draw.Event.CREATED, function (e) {
+        const layer = e.layer;
+        drawLayer.addLayer(layer);
+  const latlngs = layer.getLatLngs()[0] || [];
+  // Convertir a formato [x,y] (horizontal) porque tu JSON usa [x,y]
+  const coords = latlngs.map(p => [parseFloat(p.lat.toFixed(2)), parseFloat(p.lng.toFixed(2))]);
+  // Mostrar modal y pegar JSON en formato compacto (horizontal)
+  const textarea = document.getElementById('coord-text');
+  if (textarea) textarea.value = JSON.stringify(coords);
+        const modal = document.getElementById('coord-modal');
+        if (modal) modal.style.display = 'block';
+      });
+
+      // Close & copy handlers
+      document.addEventListener('click', function (ev) {
+        if (ev.target && ev.target.id === 'coord-modal-close') {
+          const modal = document.getElementById('coord-modal'); if (modal) modal.style.display = 'none';
+        }
+        if (ev.target && ev.target.id === 'coord-copy') {
+          const ta = document.getElementById('coord-text');
+          if (ta) { ta.select(); document.execCommand('copy'); alert('Copiado al portapapeles'); }
+        }
+      });
+    } catch (err) {
+      console.warn('Leaflet.draw no disponible', err);
+    }
+
+    console.log('Controles inicializados correctamente');
+  });
 
 </script>
-
 </body>
 </html>

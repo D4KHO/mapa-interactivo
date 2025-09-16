@@ -332,7 +332,7 @@
   // Tamaños por-sector (puedes ajustar estos valores en el código)
   const sectorSizes = {
     'etapa-1': { width: 2300, height: 3898 },
-    'etapa-2': { width: 2500, height: 4539 },
+    'etapa-2': { width: 2000, height: 5457 },
     'completo': { width: 3500, height: 3848 }
   };
 
@@ -475,8 +475,16 @@
     a.punto.setLatLng(centro);
   }
 
-  // Eventos de teclado
+  // Eventos de teclado: solo prevenir default para teclas que la app maneja.
   document.addEventListener('keydown', e => {
+    // Si el usuario está usando una tecla modificadora (Ctrl/Meta/Alt), no interferir
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    // Lista de teclas manejadas por la app
+    const handledKeys = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','-','t','r','Tab','Enter'];
+
+    if (!handledKeys.includes(e.key)) return; // dejar que el navegador maneje F5, F12, etc.
+
     switch (e.key) {
       case 'ArrowUp': mover(0, 1); break;
       case 'ArrowDown': mover(0, -1); break;
@@ -490,14 +498,17 @@
         activo = (activo + 1) % polygons.length;
         document.getElementById('info').innerText =
           `Polígono activo: ${activo + 1} de ${polygons.length}`;
-        e.preventDefault();
+        e.preventDefault(); // prevenir tabulación por defecto cuando usamos Tab internamente
         break;
       case 'Enter':
         const a = getActivo();
-        const line = a.coords.map(([y, x]) => `[${y.toFixed(2)},${x.toFixed(2)}]`).join(',');
-        console.log(`[${line}],`);
+        if (a) {
+          const line = a.coords.map(([y, x]) => `[${y.toFixed(2)},${x.toFixed(2)}]`).join(',');
+          console.log(`[${line}],`);
+        }
         break;
     }
+    // Prevenir comportamiento por defecto para las teclas que maneja la app (excepto combinaciones)
     e.preventDefault();
   });
 
@@ -764,7 +775,7 @@
     
     // Definir etapas y vistas (cada etapa puede usar tamaños propios definidos en sectorSizes)
     const sectores = {
-      'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: [] },
+      'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: ['lotes_A.json'] },
       'etapa-2': { bounds: makeBounds(sectorSizes['etapa-2'].width, sectorSizes['etapa-2'].height), files: [] },
       'completo': { bounds: makeBounds(sectorSizes['completo'].width, sectorSizes['completo'].height), files: [] }
     };
