@@ -403,6 +403,9 @@
   const polygons = [];
   let activo = 0;
 
+  // Usar renderer en canvas para renderizar marcadores rápidamente
+  const pointRenderer = L.canvas({ padding: 0.5 });
+
   function cargarLotes(archivo) {
     fetch(archivo)
       .then(res => res.json())
@@ -421,11 +424,13 @@
 
           const punto = L.circleMarker(centro, {
             radius: 6,
+            renderer: pointRenderer,
             fillColor: color,
             color: 'white',
             weight: 1,
             opacity: 1,
-            fillOpacity: 1
+            fillOpacity: 1,
+            interactive: false
           }).addTo(map);
 
           polygons.push({ poly, punto, coords: lote.coords });
@@ -775,7 +780,7 @@
     
     // Definir etapas y vistas (cada etapa puede usar tamaños propios definidos en sectorSizes)
     const sectores = {
-      'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: ['lotes_A.json'] },
+      'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: ['lotes_A.json','lotes_B.json'] },
       'etapa-2': { bounds: makeBounds(sectorSizes['etapa-2'].width, sectorSizes['etapa-2'].height), files: [] },
       'completo': { bounds: makeBounds(sectorSizes['completo'].width, sectorSizes['completo'].height), files: [] }
     };
@@ -833,6 +838,21 @@
     // Seleccionar vista completa por defecto
     projectSelect.value = 'completo';
     projectSelect.dispatchEvent(new Event('change'));
+    // Function to quickly update all marker centers (used during zoom/move)
+    function updateAllMarkersCenters() {
+      if (!polygons || polygons.length === 0) return;
+      for (let i = 0; i < polygons.length; i++) {
+        const item = polygons[i];
+        const centro = item.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
+                      .map(t => t / item.coords.length);
+        if (item.punto) item.punto.setLatLng(centro);
+      }
+    }
+
+    // Listeners para asegurar actualización inmediata de marcadores durante zoom/pan
+    map.on('zoom', function() { updateAllMarkersCenters(); });
+    map.on('zoomanim', function() { updateAllMarkersCenters(); });
+    map.on('move', function() { updateAllMarkersCenters(); });
 
     console.log('Controles inicializados correctamente');
   });

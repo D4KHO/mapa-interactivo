@@ -352,7 +352,7 @@
   const map = L.map('map', {
     crs: L.CRS.Simple,
     minZoom: -3,
-    maxZoom: 2,
+    maxZoom: 3,
     zoomControl: false,
     attributionControl: false, // Elimina la marca de agua de Leaflet
     maxBounds: bounds,
@@ -421,6 +421,9 @@
   const polygons = [];
   let activo = 0;
 
+  // Usar renderer en canvas para renderizar marcadores rápidamente
+  const pointRenderer = L.canvas({ padding: 0.5 });
+
   function cargarLotes(archivo) {
     fetch(archivo)
       .then(res => res.json())
@@ -429,23 +432,29 @@
           const color = lote.estado === "Disponible" ? "green" :
                         lote.estado === "Reservado" ? "orange" : "gray";
 
+          // Crear polígono (vector) normalmente
           const poly = L.polygon(lote.coords, {
             className: 'hover-lote'
           }).addTo(map)
             .bindPopup(`<b>${lote.id}</b><br>Área: ${lote.area}<br>Precio: ${lote.precio}<br>Estado: ${lote.estado}`);
 
+          // Calcular centro (promedio de vértices)
           const centro = lote.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
                           .map(t => t / lote.coords.length);
 
+          // Crear circleMarker usando renderer en canvas para que sea más rápido en zoom/pan
           const punto = L.circleMarker(centro, {
-            radius: 6,
+            radius: 5,
+            renderer: pointRenderer,
             fillColor: color,
-            color: 'white',
+            color: '#ffffff',
             weight: 1,
             opacity: 1,
-            fillOpacity: 1
+            fillOpacity: 1,
+            interactive: false // evitar overhead de eventos en cada marcador
           }).addTo(map);
 
+          // Guardar referencia al polígono y al punto y coords originales
           polygons.push({ poly, punto, coords: lote.coords });
         });
       });
@@ -462,6 +471,7 @@
 
     const centro = a.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
                   .map(t => t / a.coords.length);
+    // Actualizar posición del marker sin recrearlo
     a.punto.setLatLng(centro);
   }
 
@@ -474,6 +484,7 @@
       centro[1] + (x - centro[1]) * factor
     ]);
     a.poly.setLatLngs(a.coords);
+    // Mantener el punto en el centro recalculado
     a.punto.setLatLng(centro);
   }
 
@@ -491,6 +502,18 @@
     });
     a.poly.setLatLngs(a.coords);
     a.punto.setLatLng(centro);
+  }
+
+  // Function to quickly update all marker centers (used during zoom/move)
+  function updateAllMarkersCenters() {
+    if (!polygons || polygons.length === 0) return;
+    for (let i = 0; i < polygons.length; i++) {
+      const item = polygons[i];
+      const centro = item.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
+                    .map(t => t / item.coords.length);
+      // Use setLatLng to move marker; using canvas renderer it será instantáneo
+      if (item.punto) item.punto.setLatLng(centro);
+    }
   }
 
   // Eventos de teclado: solo prevenir default para teclas que la app maneja.
@@ -793,7 +816,7 @@
     
     // Definir etapas y vistas (cada etapa puede usar tamaños propios definidos en sectorSizes)
     const sectores = {
-      'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: ['lotes_A.json'] },
+      'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: ['lotes_A.json','lotes_B.json']},
       'etapa-2': { bounds: makeBounds(sectorSizes['etapa-2'].width, sectorSizes['etapa-2'].height), files: [] },
       'completo': { bounds: makeBounds(sectorSizes['completo'].width, sectorSizes['completo'].height), files: [] }
     };
@@ -851,6 +874,22 @@
   // Seleccionar vista 'etapa-1' por defecto
   projectSelect.value = 'etapa-1';
   projectSelect.dispatchEvent(new Event('change'));
+
+  // Listeners para asegurar actualización inmediata de marcadores durante zoom/pan
+  map.on('zoom', function() {
+    // Actualiza posiciones de marcadores en cada evento de zoom
+    updateAllMarkersCenters();
+  });
+
+  map.on('zoomanim', function() {
+    // también durante la animación de zoom
+    updateAllMarkersCenters();
+  });
+
+  map.on('move', function() {
+    // durante panning
+    updateAllMarkersCenters();
+  });
 
     // ---- Inicializar Leaflet.draw minimal para copiar coordenadas ----
     try {
