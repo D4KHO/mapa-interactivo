@@ -496,10 +496,43 @@
 
             // Guardar contenido de popup pero no bindearlo inmediatamente (reduce overhead)
             const popupContent = `<b>${lote.id}</b><br>Área: ${lote.area}<br>Precio: ${lote.precio}<br>Estado: ${lote.estado}`;
-            polygons.push({ poly, coords: lote.coords, loteData: lote, popupContent, popupBound: false });
-            continue;
 
-            polygons.push({ poly, coords: lote.coords, loteData: lote });
+            // Guardar estilo original para poder restaurarlo al salir del hover
+            const originalStyle = {
+              fillOpacity: poly.options.fillOpacity,
+              weight: poly.options.weight,
+              fillColor: poly.options.fillColor,
+              color: poly.options.color
+            };
+
+            // Con renderer canvas, el CSS :hover no funciona; usar eventos JS
+            poly.on('mouseover', function(e) {
+              if (polygonsInteractiveDisabled) return;
+              try {
+                this.setStyle({ fillOpacity: Math.max(0.55, originalStyle.fillOpacity), weight: 2 });
+              } catch (err) { /* ignore */ }
+            });
+            poly.on('mouseout', function(e) {
+              try {
+                this.setStyle({ fillOpacity: originalStyle.fillOpacity, weight: originalStyle.weight });
+              } catch (err) { /* ignore */ }
+            });
+
+            // Soporte táctil: destacar al tocar (toggle)
+            let touchHighlighted = false;
+            poly.on('click', function(e) {
+              if (polygonsInteractiveDisabled) return;
+              try {
+                if (!touchHighlighted) {
+                  this.setStyle({ fillOpacity: Math.max(0.55, originalStyle.fillOpacity), weight: 2 });
+                } else {
+                  this.setStyle({ fillOpacity: originalStyle.fillOpacity, weight: originalStyle.weight });
+                }
+                touchHighlighted = !touchHighlighted;
+              } catch (err) { /* ignore */ }
+            });
+
+            polygons.push({ poly, coords: lote.coords, loteData: lote, popupContent, popupBound: false, originalStyle });
           }
           
           // Procesar siguiente lote de manera asíncrona
