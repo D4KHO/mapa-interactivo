@@ -22,7 +22,8 @@
 <body>
 
     <header class="project-header">
-      <div class="header-contenido">
+      <div class="header-main">
+        <!-- Selector de Etapa -->
         <div class="project-selector">
           <label for="project-select">Etapa:</label>
           <select id="project-select">
@@ -33,21 +34,19 @@
           </select>
         </div>
 
-        <!-- Menú central (botones de navegación) -->
-        <div class="header-menu">
-          <button id="btn-areas" class="ui-button">Áreas Comunes</button>
-          <button id="btn-lotes" class="ui-button">Lotes</button>
+        <!-- Barra de Estados - En el medio -->
+        <div class="status-bar">
+          <button class="status-btn disponible">Disponible</button>
+          <button class="status-btn reservado">Reservado</button>
+          <button class="status-btn vendido">Vendido</button>
+          <button class="status-btn bloqueado">Bloqueado</button>
         </div>
 
-        <div class="header-spacer"></div>
-      </div>
-
-      <!-- Barra de Estados de Lotes (aparece sobre el mapa) -->
-      <div class="status-bar">
-        <button class="status-btn disponible">Disponible</button>
-        <button class="status-btn reservado">Reservado</button>
-        <button class="status-btn vendido">Vendido</button>
-        <button class="status-btn bloqueado">Bloqueado</button>
+        <!-- Botones de navegación -->
+        <nav class="header-nav">
+          <button id="btn-areas" class="ui-button">Áreas Comunes</button>
+          <button id="btn-lotes" class="ui-button">Lotes</button>
+        </nav>
       </div>
     </header>
 
@@ -353,7 +352,10 @@
     attributionControl: false, // Elimina la marca de agua de Leaflet
     maxBounds: bounds,
     maxBoundsViscosity: 1.0, // Límites duros sin rebote al centro
-    keyboard: false
+    keyboard: false,
+    zoomAnimation: false, // Deshabilitar animación de zoom para evitar polígonos flotantes
+    fadeAnimation: false, // Deshabilitar animación de fade
+    markerZoomAnimation: false // Deshabilitar animación de marcadores en zoom
   });
 
   map.fitBounds(bounds);
@@ -403,38 +405,56 @@
   const polygons = [];
   let activo = 0;
 
-  // Usar renderer en canvas para renderizar marcadores rápidamente
-  const pointRenderer = L.canvas({ padding: 0.5 });
-
   function cargarLotes(archivo) {
     fetch(archivo)
       .then(res => res.json())
       .then(lotes => {
-        lotes.forEach((lote, index) => {
-          const color = lote.estado === "Disponible" ? "green" :
-                        lote.estado === "Reservado" ? "orange" : "gray";
+        // Cargar lotes en lotes pequeños para mejor rendimiento
+        const batchSize = 50; // Procesar 50 lotes a la vez
+        let currentBatch = 0;
+        
+        function processBatch() {
+          const start = currentBatch * batchSize;
+          const end = Math.min(start + batchSize, lotes.length);
+          
+          for (let i = start; i < end; i++) {
+            const lote = lotes[i];
+            
+            // Definir colores por estado
+            const colors = {
+              "Disponible": { fill: "#22c55e", stroke: "#16a34a" },
+              "Reservado": { fill: "#f97316", stroke: "#ea580c" },
+              "Vendido": { fill: "#ef4444", stroke: "#dc2626" },
+              "Bloqueado": { fill: "#6b7280", stroke: "#4b5563" }
+            };
+            
+            const colorConfig = colors[lote.estado] || colors["Bloqueado"];
 
-          const poly = L.polygon(lote.coords, {
-            className: 'hover-lote'
-          }).addTo(map)
-            .bindPopup(`<b>${lote.id}</b><br>Área: ${lote.area}<br>Precio: ${lote.precio}<br>Estado: ${lote.estado}`);
+            // Crear polígono con color basado en estado
+            const poly = L.polygon(lote.coords, {
+              className: 'hover-lote',
+              fillColor: colorConfig.fill,
+              color: colorConfig.stroke,
+              weight: 1,
+              opacity: 0.8,
+              fillOpacity: 0.3,
+              interactive: true,
+              bubblingMouseEvents: false // Mejorar rendimiento de eventos
+            }).addTo(map)
+              .bindPopup(`<b>${lote.id}</b><br>Área: ${lote.area}<br>Precio: ${lote.precio}<br>Estado: ${lote.estado}`);
 
-          const centro = lote.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
-                          .map(t => t / lote.coords.length);
-
-          const punto = L.circleMarker(centro, {
-            radius: 6,
-            renderer: pointRenderer,
-            fillColor: color,
-            color: 'white',
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 1,
-            interactive: false
-          }).addTo(map);
-
-          polygons.push({ poly, punto, coords: lote.coords });
-        });
+            polygons.push({ poly, coords: lote.coords, loteData: lote });
+          }
+          
+          // Procesar siguiente lote de manera asíncrona
+          currentBatch++;
+          if (currentBatch * batchSize < lotes.length) {
+            requestAnimationFrame(processBatch);
+          }
+        }
+        
+        // Iniciar procesamiento por lotes
+        processBatch();
       });
   }
 
@@ -446,10 +466,6 @@
     const a = getActivo();
     a.coords = a.coords.map(([y, x]) => [y + dy, x + dx]);
     a.poly.setLatLngs(a.coords);
-
-    const centro = a.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
-                  .map(t => t / a.coords.length);
-    a.punto.setLatLng(centro);
   }
 
   function escalar(factor) {
@@ -461,7 +477,6 @@
       centro[1] + (x - centro[1]) * factor
     ]);
     a.poly.setLatLngs(a.coords);
-    a.punto.setLatLng(centro);
   }
 
   function rotar(grados) {
@@ -477,7 +492,6 @@
       return [centro[0] + ry, centro[1] + rx];
     });
     a.poly.setLatLngs(a.coords);
-    a.punto.setLatLng(centro);
   }
 
   // Eventos de teclado: solo prevenir default para teclas que la app maneja.
@@ -801,7 +815,6 @@
         if (polygons.length > 0) {
           polygons.forEach(pol => {
             if (pol.poly) map.removeLayer(pol.poly);
-            if (pol.punto) map.removeLayer(pol.punto);
           });
           polygons.length = 0;
         }
@@ -838,21 +851,6 @@
     // Seleccionar vista completa por defecto
     projectSelect.value = 'completo';
     projectSelect.dispatchEvent(new Event('change'));
-    // Function to quickly update all marker centers (used during zoom/move)
-    function updateAllMarkersCenters() {
-      if (!polygons || polygons.length === 0) return;
-      for (let i = 0; i < polygons.length; i++) {
-        const item = polygons[i];
-        const centro = item.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
-                      .map(t => t / item.coords.length);
-        if (item.punto) item.punto.setLatLng(centro);
-      }
-    }
-
-    // Listeners para asegurar actualización inmediata de marcadores durante zoom/pan
-    map.on('zoom', function() { updateAllMarkersCenters(); });
-    map.on('zoomanim', function() { updateAllMarkersCenters(); });
-    map.on('move', function() { updateAllMarkersCenters(); });
 
     console.log('Controles inicializados correctamente');
   });

@@ -1,5 +1,4 @@
-/* style_header,footer.css */
-/* header section */
+/* style_footer.css */
 /* Navigation */
 :root {
     --forest-green-dark: #000000;
@@ -16,7 +15,7 @@
     --border-radius: 8px;
 }
 
-
+    
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -197,19 +196,6 @@ html {
 }
 
 
-
-.main-header {
-    background: var(--white);
-    box-shadow: var(--shadow-soft);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 50;
-    transition: all 0.3s ease;
-    padding: 0;
-}
-
 /* Barra de progreso de scroll */
 .scroll-progress {
     position: absolute;
@@ -220,24 +206,6 @@ html {
     width: 0%;
     transition: width 0.1s ease;
     z-index: 100;
-}
-
-.main-header.scrolled {
-    padding: 0;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-}
-
-
-.header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 0;
-    transition: all 0.3s ease;
-}
-
-.main-header.scrolled .header-content {
-    padding: 0.5rem 0;
 }
 
 a {
@@ -308,15 +276,6 @@ a:hover {
     display: block;
     max-width: 300px !important;
     transition: all 0.3s ease;
-}
-
-/* Estilos para el header compacto */
-.main-header.scrolled .logo {
-    height: 63px !important;
-}
-
-.main-header.scrolled .logo-img {
-    height: 65px !important;
 }
 
 /* Asegurar que la navegación de escritorio sea visible en pantallas pequeñas
@@ -643,11 +602,6 @@ a:hover {
 
     .desktop-nav {
         display: none !important;
-    }
-
-    .header-content {
-        gap: 0.5rem;
-        padding: 0;
     }
 
     .footer-content {

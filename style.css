@@ -16,7 +16,7 @@ body {
 }
 
 .page-content {
-  margin-top: 140px; /* Espacio para el header fijo */
+  margin-top: 120px; /* Ajustado para la nueva estructura del header */
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -24,10 +24,24 @@ body {
 
 @media (max-width: 768px) {
   .page-content {
-    margin-top: 160px; /* Más espacio en móvil */
+    margin-top: 100px; /* Reducido para tablets */
   }
   .map-wrapper {
-    height: 50vh;
+    height: 65vh; /* Aumentado para mejor visualización */
+    min-height: 450px; /* Altura mínima mejorada */
+  }
+}
+
+/* Ajustes adicionales para dispositivos muy pequeños */
+@media (max-width: 480px) {
+  .page-content {
+    margin-top: 90px; /* Optimizado para móviles pequeños */
+  }
+}
+
+@media (max-width: 360px) {
+  .page-content {
+    margin-top: 85px; /* Optimizado para pantallas muy pequeñas */
   }
 }
 
@@ -57,6 +71,28 @@ body {
   overflow: visible !important;
 }
 
+/* Deshabilitar animaciones SVG durante zoom para evitar polígonos flotantes */
+.leaflet-zoom-animated {
+  transition: none !important;
+}
+
+svg.leaflet-zoom-animated {
+  transition: none !important;
+}
+
+/* Optimizaciones de rendimiento para el contenedor del mapa */
+#map {
+  transform: translateZ(0); /* Hardware acceleration */
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Optimizar rendering de elementos SVG */
+.leaflet-overlay-pane svg {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
 /* Reset scroll y estructura de la página (ya cubierto en parte por el reset global) */
 html, body {
   height: auto !important;
@@ -83,71 +119,114 @@ canvas {
 }
 
 /* =============================================
-   HEADER CON SELECTOR DE PROYECTO
+   HEADER CON SELECTOR DE PROYECTO - ESTRUCTURA MEJORADA
    ============================================= */
 
 header.project-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  padding: 15px 20px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   position: relative;
   z-index: 1000;
 }
 
-.header-contenido {
+.header-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
   max-width: 1200px;
   margin: 0 auto;
-  gap: 20px;
+  gap: 15px; /* Reducido para acomodar 3 elementos */
 }
 
 .project-selector {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   flex-shrink: 0;
+  min-width: 200px; /* Ancho mínimo para consistencia */
 }
 
-.header-menu {
+.header-nav {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   align-items: center;
   justify-content: center;
-  flex: 1;
-}
-
-.header-spacer {
   flex-shrink: 0;
-  width: 200px; /* Same width as project-selector to balance */
+  min-width: 200px; /* Ancho mínimo para balancear con project-selector */
 }
 
 /* =============================================
-   RESPONSIVE DESIGN PARA EL HEADER
+   RESPONSIVE DESIGN PARA EL HEADER - MEJORADO
    ============================================= */
 
 @media (max-width: 768px) {
-  .header-contenido {
+  header.project-header {
+    padding: 12px 15px;
+  }
+  
+  .header-main {
     flex-direction: column;
-    gap: 15px;
+    gap: 8px; /* Reducido para header más compacto */
   }
   
-  .header-spacer {
-    display: none;
-  }
-  
-  .header-menu {
-    order: -1; /* Mover los botones arriba en móvil */
+  .header-nav {
+    gap: 10px;
+    min-width: auto; /* Quitar ancho mínimo en móviles */
   }
   
   .project-selector {
     justify-content: center;
+    gap: 10px;
+    min-width: auto; /* Quitar ancho mínimo en móviles */
   }
   
-  .header-menu .ui-button {
-    padding: 10px 20px;
-    font-size: 14px;
+  .header-nav .ui-button {
+    padding: 7px 14px; /* Más compacto */
+    font-size: 13px;
+  }
+  
+  .project-selector select {
+    min-width: 160px; /* Reducido */
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+
+  .project-selector label {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  header.project-header {
+    padding: 8px 10px; /* Más compacto */
+  }
+  
+  .header-main {
+    gap: 6px; /* Gap aún menor */
+  }
+  
+  .header-nav {
+    gap: 6px;
+  }
+  
+  .header-nav .ui-button {
+    padding: 6px 12px; /* Muy compacto */
+    font-size: 12px;
+  }
+  
+  .project-selector select {
+    min-width: 140px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  .project-selector label {
+    font-size: 12px;
+  }
+  
+  .project-selector {
+    gap: 8px;
   }
 }
 
@@ -199,6 +278,21 @@ header.project-header {
   min-height: 400px;
 }
 
+/* Mejoras específicas para móviles */
+@media (max-width: 480px) {
+  .map-wrapper {
+    height: 70vh; /* Altura optimizada para móviles pequeños */
+    min-height: 400px;
+    margin: 10px;
+    border-radius: 12px;
+  }
+  
+  .map-container {
+    padding: 0 10px; /* Padding reducido en móviles pequeños */
+    margin: 10px auto;
+  }
+}
+
 #map {
   height: 100%;
   width: 100%;
@@ -225,34 +319,81 @@ header.project-header {
    ============================================= */
 
 .hover-lote {
-  stroke: transparent;
-  fill-opacity: 0;
-  transition: all 0.2s ease;
+  stroke-width: 1;
+  transition: fill-opacity 0.1s ease, filter 0.1s ease;
+  cursor: pointer;
+  /* Optimizaciones de rendimiento */
+  will-change: fill-opacity, filter;
+  transform: translateZ(0); /* Forzar hardware acceleration */
+  backface-visibility: hidden;
 }
 
 .hover-lote:hover {
-  stroke: white !important;
-  stroke-width: 2 !important;
-  fill-opacity: 0.1 !important;
-  fill: white !important;
-  cursor: hand;
+  fill-opacity: 0.6 !important;
+  filter: brightness(1.2) saturate(1.1);
+  z-index: 1000;
 }
 
 /* =============================================
-   BARRA DE ESTADOS DE LOTES
+   BARRA DE ESTADOS DE LOTES - INTEGRADA EN EL CENTRO
    ============================================= */
 
 .status-bar {
-  position: absolute;
-  top: 15px;
-  right: 15px;
   display: flex;
-  gap: 8px;
-  z-index: 1000;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Mejoras para la barra de estados en móviles */
+@media (max-width: 768px) {
+  .status-bar {
+    padding: 5px 8px;
+    gap: 4px;
+    order: 0; /* Mantener en el medio en móvil */
+  }
+  
+  .status-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+    border-radius: 10px;
+    flex: 1;
+    min-width: 60px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-bar {
+    padding: 4px 6px;
+    gap: 3px;
+  }
+  
+  .status-btn {
+    padding: 3px 6px;
+    font-size: 9px;
+    min-width: 50px;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .status-bar {
+    gap: 2px;
+    padding: 3px 5px;
+  }
+  
+  .status-btn {
+    padding: 3px 5px;
+    font-size: 8px;
+    min-width: 45px;
+    border-radius: 6px;
+  }
 }
 
 .status-btn {
@@ -281,8 +422,8 @@ header.project-header {
 }
 
 .status-btn.bloqueado {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: #4b5563;
+  color: #ffffff;
 }
 
 .status-btn:hover {
@@ -307,6 +448,34 @@ header.project-header {
   border-radius: 25px;
   padding: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Mejoras para controles en móviles */
+@media (max-width: 768px) {
+  .bottom-center-controls {
+    left: 15px;
+    bottom: 20px;
+    padding: 10px;
+    gap: 12px;
+  }
+  
+  .control-button {
+    width: 48px !important; /* Botones más grandes para touch */
+    height: 48px !important;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bottom-center-controls {
+    left: 10px;
+    bottom: 15px;
+  }
+  
+  .control-button {
+    width: 44px !important; /* Ajuste para pantallas muy pequeñas */
+    height: 44px !important;
+  }
 }
 
 .control-button {
@@ -562,18 +731,16 @@ header.project-header {
 }
 
 /* =============================================
-   MENÚS DE NAVEGACIÓN
+   MENÚS DE NAVEGACIÓN - ACTUALIZADO
    ============================================= */
 
-.header-menu {
+.header-nav {
   display: flex;
   gap: 15px;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
+  justify-content: right;
 }
 
-.header-menu .ui-button { 
+.header-nav .ui-button { 
   background-color: rgba(255, 255, 255, 0.2); 
   color: white; 
   border: none; 
@@ -587,8 +754,8 @@ header.project-header {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.header-menu .ui-button.active, 
-.header-menu .ui-button:hover { 
+.header-nav .ui-button.active, 
+.header-nav .ui-button:hover { 
   background-color: rgba(255, 255, 255, 0.3); 
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -726,19 +893,71 @@ header.project-header {
    ============================================= */
 @media (max-width: 768px) {
   .search-panel, .areas-panel, .info-panel {
-    width: calc(100% - 40px);
-    max-width: 280px;
-    top: 20px;
-    right: 20px;
-    max-height: calc(100% - 40px);
+    width: calc(100% - 30px); /* Más ancho en tablets */
+    max-width: none; /* Sin límite de ancho */
+    top: 15px;
+    right: 15px;
+    left: 15px; /* Centrado horizontalmente */
+    max-height: calc(100% - 30px);
+  }
+  
+  /* Mejorar botones de cierre en móvil */
+  #close-panel, #close-search-panel {
+    font-size: 32px;
+    padding: 5px;
+    color: #666;
+  }
+  
+  /* Mejorar contenido del panel */
+  .panel-content {
+    padding: 0 20px;
+    font-size: 16px; /* Texto más legible */
+  }
+  
+  .project-title {
+    font-size: 24px; /* Título más pequeño para móvil */
+  }
+  
+  .lote-id {
+    font-size: 18px;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr; /* Una columna en móvil */
+    gap: 12px;
+  }
+  
+  .info-item .value {
+    font-size: 16px;
   }
 }
 
 @media (max-width: 480px) {
   .search-panel, .areas-panel, .info-panel {
-    width: calc(100% - 30px);
-    top: 15px;
-    right: 15px;
-    max-height: calc(100% - 30px);
+    width: calc(100% - 20px);
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-height: calc(100% - 20px);
+  }
+  
+  .panel-content {
+    padding: 0 15px;
+  }
+  
+  /* Hacer botones de WhatsApp más grandes */
+  .whatsapp-button {
+    padding: 18px;
+    font-size: 18px;
+  }
+  
+  /* Mejorar filtros de búsqueda */
+  .filter-group {
+    margin-bottom: 20px;
+  }
+  
+  .dual-range-slider input[type=range]::-webkit-slider-thumb {
+    width: 28px; /* Controles más grandes para touch */
+    height: 28px;
   }
 }
