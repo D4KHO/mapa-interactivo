@@ -68,10 +68,18 @@ function setOverlay(imageSrc, dims) {
 }
 
 if (imageCache['ETAPA GENERAL.webp']) {
-  setOverlay('ETAPA GENERAL.webp', sectorSizes['completo']);
+  // Solo aplicar el overlay si el sector actual es 'completo'
+  if (currentSector === 'completo') {
+    setOverlay('ETAPA GENERAL.webp', sectorSizes['completo']);
+  }
 } else {
   const img = new Image();
-  img.onload = () => setOverlay('ETAPA GENERAL.webp', sectorSizes['completo']);
+  img.onload = () => {
+    // Solo aplicar el overlay si el sector actual sigue siendo 'completo'
+    if (currentSector === 'completo') {
+      setOverlay('ETAPA GENERAL.webp', sectorSizes['completo']);
+    }
+  };
   img.src = 'ETAPA GENERAL.webp';
 }
 
