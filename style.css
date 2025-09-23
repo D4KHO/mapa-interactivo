@@ -618,6 +618,89 @@ section.project-header {
 }
 
 /* =============================================
+   BOTÓN DE COLAPSAR CONTROLES MÓVIL
+   ============================================= */
+
+/* Botón de colapsar - solo visible en móvil */
+.collapse-button {
+  display: none;
+}
+
+/* Contenedor de los controles principales */
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+/* Estados del contenedor de controles */
+.bottom-center-controls.collapsed .controls-container {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  gap: 0;
+}
+
+.bottom-center-controls.collapsed .collapse-button svg {
+  transform: rotate(180deg);
+}
+
+/* Estilos específicos para móvil */
+@media (max-width: 768px) {
+  .collapse-button {
+    display: flex;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(74, 222, 128, 0.3);
+    box-shadow: 0 2px 12px rgba(74, 222, 128, 0.2);
+  }
+  
+  .collapse-button:hover {
+    background: rgba(74, 222, 128, 0.1);
+    border-color: rgba(74, 222, 128, 0.5);
+    box-shadow: 0 4px 16px rgba(74, 222, 128, 0.3);
+  }
+  
+  /* Ajuste del contenedor principal en móvil */
+  .bottom-center-controls {
+    transition: all 0.3s ease;
+  }
+  
+  .bottom-center-controls.collapsed {
+    padding: 8px;
+  }
+  
+  /* Separador visual entre el botón de colapsar y los controles */
+  .collapse-button {
+    margin-bottom: 5px;
+    position: relative;
+  }
+  
+  .collapse-button::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
+    transition: opacity 0.3s ease;
+  }
+  
+  .bottom-center-controls.collapsed .collapse-button::after {
+    opacity: 0;
+  }
+}
+
+/* Ocultar el botón en desktop */
+@media (min-width: 769px) {
+  .collapse-button {
+    display: none !important;
+  }
+}
+
+/* =============================================
    BOTONES DE LA INTERFAZ
    ============================================= */
 

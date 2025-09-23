@@ -351,6 +351,31 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-cam-down').addEventListener('click', () => { map.panBy([0, 50]); });
   document.getElementById('btn-home').addEventListener('click', () => { map.fitBounds(bounds); });
 
+  // Funcionalidad del botón de colapsar controles móvil
+  const collapseButton = document.getElementById('btn-collapse');
+  const controlsContainer = document.querySelector('.bottom-center-controls');
+  let isCollapsed = false;
+
+  collapseButton.addEventListener('click', () => {
+    isCollapsed = !isCollapsed;
+    
+    if (isCollapsed) {
+      controlsContainer.classList.add('collapsed');
+    } else {
+      controlsContainer.classList.remove('collapsed');
+    }
+    
+    // Guardar estado en localStorage para persistencia
+    localStorage.setItem('controlsCollapsed', isCollapsed);
+  });
+
+  // Restaurar estado previo al cargar la página
+  const savedCollapsedState = localStorage.getItem('controlsCollapsed');
+  if (savedCollapsedState === 'true') {
+    isCollapsed = true;
+    controlsContainer.classList.add('collapsed');
+  }
+
   const projectSelect = document.getElementById('project-select');
   const sectores = {
     'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: ['Coord/lotes_A.json','Coord/lotes_B.json','Coord/lotes_C.json','Coord/lotes_D.json','Coord/lotes_E.json','Coord/lotes_F.json','Coord/lotes_G.json','Coord/lotes_H.json','Coord/lotes_I.json','Coord/lotes_J.json']},
