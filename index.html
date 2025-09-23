@@ -21,17 +21,68 @@
 
 <body>
 
-    <header class="project-header">
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Logo -->
+                <div class="logo">
+                    <a href="index.html">
+                        <img src="LOGO WEBP NEGRO.webp" alt="Casa Bonita Logo" class="logo-img">
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <nav class="desktop-nav">
+                    <a href="index.html">Inicio</a>
+                    <a href="index.html#proyecto">Proyecto</a>
+                    <a href="index.html#techo-propio">Techo Propio</a>
+                    <a href="contacto.html" class="nav-link">Contacto</a>
+                    <a href="informacion.html" class="nav-link">Informacion</a>
+                    <a href="nosotros.html" class="nav-link">Nosotros</a>
+                    <a href="documentos.html" class="nav-link">Documentos</a>
+                    <a href="index.html" class="nav-link active">Mapa interactivo</a>
+                  </nav>
+
+                <!-- CTA Button -->
+        <div class="cta-button">
+          <button class="btn btn-hero" onclick="openWhatsApp('cta')">
+            ¡Consulta Aquí!
+          </button>
+        </div>
+            </div>
+
+        </div>
+    </header>
+
+    <section class="project-header">
       <div class="header-main">
         <!-- Selector de Etapa -->
         <div class="project-selector">
           <label for="project-select">Etapa:</label>
-          <select id="project-select">
+          <!-- El select se mantiene como fuente de verdad para la lógica; lo ocultamos visualmente
+               y añadimos un control visual (stage-switch) que sincroniza su valor con el select. -->
+          <select id="project-select" class="stage-select" aria-label="Selector de etapa">
             <option value="">-- Seleccione --</option>
             <option value="etapa-1">Etapa 1</option>
             <option value="etapa-2">Etapa 2</option>
             <option value="completo">Vista Completa</option>
           </select>
+
+          <!-- Control visual compacto (no duplica la lógica, solo despacha cambios al select) -->
+          <div class="stage-switch" role="tablist" aria-label="Selector visual de etapas">
+            <button type="button" class="stage-btn" data-value="etapa-1" role="tab" aria-pressed="false">
+              <span class="thumb" aria-hidden="true"></span>
+              <span class="stage-label">Etapa 1</span>
+            </button>
+            <button type="button" class="stage-btn" data-value="etapa-2" role="tab" aria-pressed="false">
+              <span class="thumb" aria-hidden="true"></span>
+              <span class="stage-label">Etapa 2</span>
+            </button>
+            <button type="button" class="stage-btn" data-value="completo" role="tab" aria-pressed="false">
+              <span class="thumb" aria-hidden="true"></span>
+              <span class="stage-label">Completo</span>
+            </button>
+          </div>
         </div>
 
         <!-- Barra de Estados - En el medio -->
@@ -48,7 +99,7 @@
           <button id="btn-lotes" class="ui-button">Lotes</button>
         </nav>
       </div>
-    </header>
+    </section>
 
 <!-- Project header moved to the top as <header class="project-header"> -->
 
@@ -58,7 +109,6 @@
 <section class="map-section">
   <div class="map-container">
     <div class="map-wrapper">
-      <div id="info"></div>
       <div id="map"></div>
         <div class="ui-controls-section">
 
@@ -265,8 +315,8 @@
                             </svg>
                             <span>asignaciones@casabonita.pe</span>
                         </div>
-                        <div class="footer-whatsapp-button">
-                            <button class="btn btn-whatsapp-footer" onclick="openWhatsApp()">
+            <div class="footer-whatsapp-button">
+              <button class="btn btn-whatsapp-footer" onclick="openWhatsApp('footer')">
                                 <svg viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.106"></path>
                                 </svg>
@@ -297,8 +347,8 @@
     </footer>
 
     <!-- WhatsApp flotante -->
-    <div class="whatsapp-float">
-        <button onclick="openWhatsApp()" class="whatsapp-btn">
+  <div class="whatsapp-float">
+    <button onclick="openWhatsApp('float')" class="whatsapp-btn">
             <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.106"></path>
             </svg>
@@ -308,697 +358,9 @@
     </div> <!-- Fin del contenedor page-content -->
 
 <!-- =============================================
-     SCRIPTS - FUNCIONALIDAD DEL MAPA
+     SCRIPTS - funcionalidad del mapa extraída a script-mapa.js
      ============================================= -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-  // Precarga de imágenes para evitar demoras en el renderizado
-  const imageCache = {};
-  const preloadImages = ['ETAPA GENERAL.webp', 'ETAPA 1 img.webp', 'ETAPA 2 img.webp'];
-  
-  // Función para precargar imágenes
-  function preloadImage(src) {
-    if (!imageCache[src]) {
-      const img = new Image();
-      img.onload = () => { imageCache[src] = true; };
-      img.src = src;
-    }
-  }
-  
-  // Precargar todas las imágenes al inicio
-  preloadImages.forEach(preloadImage);
-
-  // Tamaños por-sector (puedes ajustar estos valores en el código)
-  const sectorSizes = {
-    'etapa-1': { width: 2300, height: 3898 },
-    'etapa-2': { width: 2000, height: 5457 },
-    'completo': { width: 3500, height: 3848 }
-  };
-
-  // Helper para crear bounds a partir de width/height
-  function makeBounds(width, height) {
-    return [[0, 0], [height, width]];
-  }
-
-  // Valores iniciales: usar 'completo' como default para crear el mapa
-  let currentSector = 'completo';
-  let bounds = makeBounds(sectorSizes[currentSector].width, sectorSizes[currentSector].height);
-
-  const map = L.map('map', {
-    crs: L.CRS.Simple,
-    minZoom: -3,
-    maxZoom: 0.7,
-    zoomControl: false,
-    attributionControl: false, // Elimina la marca de agua de Leaflet
-    maxBounds: bounds,
-    maxBoundsViscosity: 1.0, // Límites duros sin rebote al centro
-    keyboard: false,
-    // Preferir canvas para renderizar vectores (mejor rendimiento con muchos polígonos)
-    preferCanvas: true,
-    zoomAnimation: false, // Deshabilitar animación de zoom para evitar polígonos flotantes
-    fadeAnimation: false, // Deshabilitar animación de fade
-    markerZoomAnimation: false // Deshabilitar animación de marcadores en zoom
-  });
-
-  map.fitBounds(bounds);
-  map.scrollWheelZoom.enable();
-  
-  // Cache de overlays para evitar recrear las capas
-  const overlayCache = {};
-  
-  // Manejo optimizado del overlay de imagen (mapa base por etapa)
-  let currentOverlay = null;
-  function setOverlay(imageSrc, dims) {
-    // Remover overlay anterior si existe
-    if (currentOverlay) {
-      try { map.removeLayer(currentOverlay); } catch (e) { console.warn('No se pudo eliminar overlay previo', e); }
-      currentOverlay = null;
-    }
-    // Añadir nuevo overlay si imageSrc definido
-    if (imageSrc) {
-      // Si se pasan dimensiones, actualizar bounds antes de aplicar
-      if (dims && dims.width && dims.height) {
-        bounds = makeBounds(dims.width, dims.height);
-        try { map.setMaxBounds(bounds); } catch (e) { /* map no inicializado aún */ }
-        try { map.fitBounds(bounds); } catch (e) { /* ignore */ }
-      }
-      
-      // Usar cache para overlay si ya existe
-      if (overlayCache[imageSrc]) {
-        currentOverlay = overlayCache[imageSrc];
-      } else {
-        currentOverlay = L.imageOverlay(imageSrc, bounds);
-        overlayCache[imageSrc] = currentOverlay;
-      }
-      currentOverlay.addTo(map);
-    }
-  }
-
-  // Imagen por defecto (vista completa) usando dimensiones específicas - precargada
-  if (imageCache['ETAPA GENERAL.webp']) {
-    setOverlay('ETAPA GENERAL.webp', sectorSizes['completo']);
-  } else {
-    // Esperar a que se cargue la imagen antes de mostrarla
-    const img = new Image();
-    img.onload = () => setOverlay('ETAPA GENERAL.webp', sectorSizes['completo']);
-    img.src = 'ETAPA GENERAL.webp';
-  }
-
-  const polygons = [];
-  let activo = 0;
-  // Crear un renderer de canvas compartido para todos los polígonos (mejor rendimiento que SVG)
-  const canvasRenderer = L.canvas({ padding: 0.5 });
-
-  // --- Simplificación de polígonos (algoritmo Douglas-Peucker) ---
-  // Entrada: points = [[y,x],[y,x],...], epsilon = tolerancia
-  function getSqDist(p1, p2) {
-    const dx = p1[0] - p2[0];
-    const dy = p1[1] - p2[1];
-    return dx * dx + dy * dy;
-  }
-
-  function getSqSegDist(p, p1, p2) {
-    let x = p1[0], y = p1[1], dx = p2[0] - x, dy = p2[1] - y;
-    if (dx !== 0 || dy !== 0) {
-      const t = ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy);
-      if (t > 1) { x = p2[0]; y = p2[1]; }
-      else if (t > 0) { x += dx * t; y += dy * t; }
-    }
-    return getSqDist(p, [x, y]);
-  }
-
-  function simplifyDP(points, first, last, sqTolerance, simplified) {
-    let maxSqDist = sqTolerance, index;
-    for (let i = first + 1; i < last; i++) {
-      const sqDist = getSqSegDist(points[i], points[first], points[last]);
-      if (sqDist > maxSqDist) {
-        index = i; maxSqDist = sqDist;
-      }
-    }
-    if (maxSqDist > sqTolerance) {
-      if (index - first > 1) simplifyDP(points, first, index, sqTolerance, simplified);
-      simplified.push(points[index]);
-      if (last - index > 1) simplifyDP(points, index, last, sqTolerance, simplified);
-    }
-  }
-
-  function simplify(points, tolerance) {
-    if (!points || points.length <= 4) return points.slice();
-    const sqTolerance = (tolerance || 1) * (tolerance || 1);
-    const last = points.length - 1;
-    const simplified = [points[0]];
-    simplifyDP(points, 0, last, sqTolerance, simplified);
-    simplified.push(points[last]);
-    return simplified;
-  }
-
-  function cargarLotes(archivo) {
-    fetch(archivo)
-      .then(res => res.json())
-      .then(lotes => {
-        // Cargar lotes en lotes pequeños para mejor rendimiento
-        const batchSize = 50; // Procesar 50 lotes a la vez
-        let currentBatch = 0;
-        
-        function processBatch() {
-          const start = currentBatch * batchSize;
-          const end = Math.min(start + batchSize, lotes.length);
-          
-          for (let i = start; i < end; i++) {
-            const lote = lotes[i];
-            
-            // Definir colores por estado
-            const colors = {
-              "Disponible": { fill: "#22c55e", stroke: "#16a34a" },
-              "Reservado": { fill: "#f97316", stroke: "#ea580c" },
-              "Vendido": { fill: "#ef4444", stroke: "#dc2626" },
-              "Bloqueado": { fill: "#6b7280", stroke: "#4b5563" }
-            };
-            
-            const colorConfig = colors[lote.estado] || colors["Bloqueado"];
-
-            // Crear polígono con color basado en estado
-            // Simplificar coordenadas antes de crear el polígono (tolerancia ajustable)
-            const simplifiedCoords = simplify(lote.coords, 0.5); // 0.5 píxeles por defecto
-
-            // Usar canvas renderer para cada polígono y reducir coste de eventos
-            const poly = L.polygon(simplifiedCoords, {
-              renderer: canvasRenderer,
-              className: 'hover-lote',
-              fillColor: colorConfig.fill,
-              color: colorConfig.stroke,
-              weight: 1,
-              opacity: 0.8,
-              fillOpacity: 0.3,
-              interactive: true,
-              bubblingMouseEvents: false // Mejorar rendimiento de eventos
-            }).addTo(map);
-
-            // Guardar contenido de popup pero no bindearlo inmediatamente (reduce overhead)
-            const popupContent = `<b>${lote.id}</b><br>Área: ${lote.area}<br>Precio: ${lote.precio}<br>Estado: ${lote.estado}`;
-
-            // Guardar estilo original para poder restaurarlo al salir del hover
-            const originalStyle = {
-              fillOpacity: poly.options.fillOpacity,
-              weight: poly.options.weight,
-              fillColor: poly.options.fillColor,
-              color: poly.options.color
-            };
-
-            // Con renderer canvas, el CSS :hover no funciona; usar eventos JS
-            poly.on('mouseover', function(e) {
-              if (polygonsInteractiveDisabled) return;
-              try {
-                this.setStyle({ fillOpacity: Math.max(0.55, originalStyle.fillOpacity), weight: 2 });
-              } catch (err) { /* ignore */ }
-            });
-            poly.on('mouseout', function(e) {
-              try {
-                this.setStyle({ fillOpacity: originalStyle.fillOpacity, weight: originalStyle.weight });
-              } catch (err) { /* ignore */ }
-            });
-
-            // Soporte táctil: destacar al tocar (toggle)
-            let touchHighlighted = false;
-            poly.on('click', function(e) {
-              if (polygonsInteractiveDisabled) return;
-              try {
-                if (!touchHighlighted) {
-                  this.setStyle({ fillOpacity: Math.max(0.55, originalStyle.fillOpacity), weight: 2 });
-                } else {
-                  this.setStyle({ fillOpacity: originalStyle.fillOpacity, weight: originalStyle.weight });
-                }
-                touchHighlighted = !touchHighlighted;
-              } catch (err) { /* ignore */ }
-            });
-
-            polygons.push({ poly, coords: lote.coords, loteData: lote, popupContent, popupBound: false, originalStyle });
-          }
-          
-          // Procesar siguiente lote de manera asíncrona
-          currentBatch++;
-          if (currentBatch * batchSize < lotes.length) {
-            requestAnimationFrame(processBatch);
-          }
-        }
-        
-        // Iniciar procesamiento por lotes
-        processBatch();
-      });
-  }
-
-  function getActivo() {
-    return polygons[activo];
-  }
-
-  function mover(dx, dy) {
-    const a = getActivo();
-    a.coords = a.coords.map(([y, x]) => [y + dy, x + dx]);
-    a.poly.setLatLngs(a.coords);
-  }
-
-  function escalar(factor) {
-    const a = getActivo();
-    const centro = a.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
-                  .map(t => t / a.coords.length);
-    a.coords = a.coords.map(([y, x]) => [
-      centro[0] + (y - centro[0]) * factor,
-      centro[1] + (x - centro[1]) * factor
-    ]);
-    a.poly.setLatLngs(a.coords);
-  }
-
-  function rotar(grados) {
-    const a = getActivo();
-    const rad = grados * Math.PI / 180;
-    const centro = a.coords.reduce(([sy, sx], [y, x]) => [sy + y, sx + x], [0, 0])
-                  .map(t => t / a.coords.length);
-    a.coords = a.coords.map(([y, x]) => {
-      const dy = y - centro[0];
-      const dx = x - centro[1];
-      const ry = dy * Math.cos(rad) - dx * Math.sin(rad);
-      const rx = dy * Math.sin(rad) + dx * Math.cos(rad);
-      return [centro[0] + ry, centro[1] + rx];
-    });
-    a.poly.setLatLngs(a.coords);
-  }
-
-  // Eventos de teclado: solo prevenir default para teclas que la app maneja.
-  document.addEventListener('keydown', e => {
-    // Si el usuario está usando una tecla modificadora (Ctrl/Meta/Alt), no interferir
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-
-    // Lista de teclas manejadas por la app
-    const handledKeys = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','-','t','r','Tab','Enter'];
-
-    if (!handledKeys.includes(e.key)) return; // dejar que el navegador maneje F5, F12, etc.
-
-    switch (e.key) {
-      case 'ArrowUp': mover(0, 1); break;
-      case 'ArrowDown': mover(0, -1); break;
-      case 'ArrowLeft': mover(-1, 0); break;
-      case 'ArrowRight': mover(1, 0); break;
-      case '+': escalar(1.1); break;
-      case '-': escalar(0.9); break;
-      case 't': rotar(-1); break;
-      case 'r': rotar(1); break;
-      case 'Tab':
-        activo = (activo + 1) % polygons.length;
-        document.getElementById('info').innerText =
-          `Polígono activo: ${activo + 1} de ${polygons.length}`;
-        e.preventDefault(); // prevenir tabulación por defecto cuando usamos Tab internamente
-        break;
-      case 'Enter':
-        const a = getActivo();
-        if (a) {
-          const line = a.coords.map(([y, x]) => `[${y.toFixed(2)},${x.toFixed(2)}]`).join(',');
-          console.log(`[${line}],`);
-        }
-        break;
-    }
-    // Prevenir comportamiento por defecto para las teclas que maneja la app (excepto combinaciones)
-    e.preventDefault();
-  });
-
-  // Datos de lotes disponibles
-  const lotesDisponibles = [
-    {
-      x: 9.15, y: 0.50, z: 15.28,
-      manzana: 'K1', lote: '21',
-      estado: 'Disponible',
-      precioFinanciado: '$ 7,300.00',
-      precioContado: '$ 6,600.00',
-      tipo: 'Residencial',
-      area: '116.56 m²',
-      dimensiones: {
-        izquierda: '19.43 ML',
-        derecha: '19.43 ML',
-        frente: '6.00 ML',
-        fondo: '6.00 ML'
-      },
-      whatsappLink: 'https://wa.me/1234567890?text=Hola,%20estoy%20interesado%20en%20el%20lote%20K1-21'
-    }
-  ];
-
-  const areasComunes = [
-    { nombre: 'Piscina', coords: { x: 0, y: 0, z: 0 } },
-    { nombre: 'Cancha de Tenis', coords: { x: 10, y: 0, z: 10 } },
-    { nombre: 'Parque Infantil', coords: { x: -10, y: 0, z: -10 } }
-  ];
-
-  // Referencias a elementos DOM
-  const sidePanel = document.getElementById('side-panel');
-  const searchPanel = document.getElementById('search-panel');
-  const areasPanel = document.getElementById('areas-panel');
-  const closePanelButton = document.getElementById('close-panel');
-  const closeSearchPanelButton = document.getElementById('close-search-panel');
-  const closeAreasPanelButton = document.getElementById('close-areas-panel');
-  const btnAreas = document.getElementById('btn-areas');
-  const btnLotes = document.getElementById('btn-lotes');
-  const areasList = document.getElementById('areas-list');
-  let selectedLote = null;
-
-  // Funciones de filtros
-  function setupDualRangeSliders() {
-    const sliders = document.querySelectorAll('.dual-range-slider');
-    sliders.forEach(slider => {
-      const minInput = slider.querySelector('input[type=range]:first-of-type');
-      const maxInput = slider.querySelector('input[type=range]:last-of-type');
-      const label = document.getElementById(`${minInput.id.split('-')[0]}-range-label`);
-
-      const updateLabel = () => {
-        const minVal = parseInt(minInput.value);
-        const maxVal = parseInt(maxInput.value);
-        if (label.id.includes('area')) {
-          label.textContent = `${minVal} m² - ${maxVal} m²`;
-        } else {
-          label.textContent = `$${minVal.toLocaleString()} - $${maxVal.toLocaleString()}`;
-        }
-      };
-
-      const filterOnChange = () => {
-        filterAndRenderLotes();
-      }
-
-      minInput.addEventListener('input', () => {
-        if (parseInt(minInput.value) > parseInt(maxInput.value)) {
-          minInput.value = maxInput.value;
-        }
-        updateLabel();
-        filterOnChange();
-      });
-
-      maxInput.addEventListener('input', () => {
-        if (parseInt(maxInput.value) < parseInt(minInput.value)) {
-          maxInput.value = minInput.value;
-        }
-        updateLabel();
-        filterOnChange();
-      });
-
-      updateLabel();
-    });
-  }
-
-  function resetFilters() {
-    const areaMin = document.getElementById('area-min');
-    const areaMax = document.getElementById('area-max');
-    const priceMin = document.getElementById('price-min');
-    const priceMax = document.getElementById('price-max');
-
-    areaMin.value = areaMin.min;
-    areaMax.value = areaMax.max;
-    priceMin.value = priceMin.min;
-    priceMax.value = priceMax.max;
-
-    document.getElementById('sort-by-select').selectedIndex = 0;
-
-    setupDualRangeSliders();
-    filterAndRenderLotes();
-  }
-
-  function filterAndRenderLotes() {
-    const areaMin = parseInt(document.getElementById('area-min').value);
-    const areaMax = parseInt(document.getElementById('area-max').value);
-    const priceMin = parseInt(document.getElementById('price-min').value);
-    const priceMax = parseInt(document.getElementById('price-max').value);
-    const sortBy = document.getElementById('sort-by-select').value;
-    
-    const resultsContainer = document.querySelector('#search-panel .panel-content');
-    resultsContainer.querySelectorAll('.lote-result-card').forEach(card => card.remove());
-
-    let filteredLotes = lotesDisponibles.filter(lote => {
-      const area = parseFloat(lote.area.replace(/[^0-9.]/g, ''));
-      const price = parseFloat(lote.precioContado.replace(/[^0-9.]/g, ''));
-      return area >= areaMin && area <= areaMax && price >= priceMin && price <= priceMax;
-    });
-
-    filteredLotes.sort((a, b) => {
-      const areaA = parseFloat(a.area.replace(/[^0-9.]/g, ''));
-      const areaB = parseFloat(b.area.replace(/[^0-9.]/g, ''));
-      const priceA = parseFloat(a.precioContado.replace(/[^0-9.]/g, ''));
-      const priceB = parseFloat(b.precioContado.replace(/[^0-9.]/g, ''));
-
-      switch (sortBy) {
-        case 'area-asc': return areaA - areaB;
-        case 'area-desc': return areaB - areaA;
-        case 'price-asc': return priceA - priceB;
-        case 'price-desc': return priceB - priceA;
-        default: return 0;
-      }
-    });
-
-    const countDisplay = document.getElementById('results-count-display');
-    countDisplay.textContent = `Mostrando ${filteredLotes.length} lote(s)`;
-
-    filteredLotes.forEach(lote => {
-      const card = document.createElement('div');
-      card.className = 'lote-result-card';
-      card.innerHTML = `
-        <h4>Mz. ${lote.manzana} - Lote ${lote.lote}</h4>
-        <div class="card-info-grid">
-          <div><span class="label">Estado</span><span class="value available">${lote.estado}</span></div>
-          <div><span class="label">Área</span><span class="value">${lote.area}</span></div>
-          <div><span class="label">Precio</span><span class="value">${lote.precioContado}</span></div>
-        </div>
-        <button class="ver-mas-btn">Ver más</button>
-      `;
-      resultsContainer.appendChild(card);
-    });
-  }
-
-  // Funciones de paneles
-  function hideAllPanels() {
-    sidePanel.classList.remove('visible');
-    searchPanel.classList.remove('visible');
-    areasPanel.classList.remove('visible');
-    btnLotes.classList.remove('active');
-    btnAreas.classList.remove('active');
-  }
-
-  function renderAreasComunes() {
-    areasList.innerHTML = '';
-    for (const area of areasComunes) {
-      const item = document.createElement('div');
-      item.className = 'area-item';
-      item.textContent = area.nombre;
-      item.onclick = () => {
-        alert(`Has hecho clic en ${area.nombre}`);
-      };
-      areasList.appendChild(item);
-    }
-  }
-
-  function updatePanelInfo(lote) {
-    if (!lote) return;
-    
-    document.getElementById('lote-id').textContent = `Mz. ${lote.manzana} - Lote ${lote.lote}`;
-    document.getElementById('lote-estado').textContent = lote.estado || '-';
-    document.getElementById('lote-precio-financiado').textContent = lote.precioFinanciado || '-';
-    document.getElementById('lote-precio-contado').textContent = lote.precioContado || '-';
-    document.getElementById('lote-tipo').textContent = lote.tipo || '-';
-    document.getElementById('lote-area').textContent = lote.area || '-';
-    
-    document.getElementById('dim-izquierda').textContent = lote.dimensiones.izquierda || '-';
-    document.getElementById('dim-derecha').textContent = lote.dimensiones.derecha || '-';
-    document.getElementById('dim-frente').textContent = lote.dimensiones.frente || '-';
-    document.getElementById('dim-fondo').textContent = lote.dimensiones.fondo || '-';
-
-    document.getElementById('whatsapp-link').href = lote.whatsappLink || '#';
-  }
-
-  // *** INICIALIZACIÓN - Esta es la parte clave que faltaba ***
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('Inicializando controles...');
-    
-    // Configurar filtros
-    setupDualRangeSliders();
-    filterAndRenderLotes();
-    
-    // Event listeners para filtros
-    document.getElementById('sort-by-select').addEventListener('change', filterAndRenderLotes);
-    document.querySelector('.clear-filters').addEventListener('click', (e) => {
-      e.preventDefault();
-      resetFilters();
-    });
-
-    // Event listeners para botones de paneles
-    btnLotes.addEventListener('click', () => {
-      console.log('Botón Lotes clickeado');
-      hideAllPanels();
-      searchPanel.classList.add('visible');
-      btnLotes.classList.add('active');
-    });
-
-    btnAreas.addEventListener('click', () => {
-      console.log('Botón Áreas clickeado');
-      hideAllPanels();
-      areasPanel.classList.add('visible');
-      btnAreas.classList.add('active');
-      renderAreasComunes();
-    });
-
-    // Event listeners para cerrar paneles
-    closePanelButton.addEventListener('click', () => {
-      console.log('Cerrando panel principal');
-      hideAllPanels();
-    });
-    closeSearchPanelButton.addEventListener('click', () => {
-      console.log('Cerrando panel de búsqueda');
-      hideAllPanels();
-    });
-    closeAreasPanelButton.addEventListener('click', () => {
-      console.log('Cerrando panel de áreas');
-      hideAllPanels();
-    });
-
-    // *** CONTROLES DE ZOOM CORREGIDOS PARA LEAFLET ***
-    document.getElementById('btn-zoom-in').addEventListener('click', () => {
-      console.log('Zoom in');
-      map.zoomIn();
-    });
-
-    document.getElementById('btn-zoom-out').addEventListener('click', () => {
-      console.log('Zoom out');
-      map.zoomOut();
-    });
-
-    document.getElementById('btn-cam-up').addEventListener('click', () => {
-      console.log('Pan arriba');
-      map.panBy([0, -50]); // Mover hacia arriba
-    });
-
-    document.getElementById('btn-cam-down').addEventListener('click', () => {
-      console.log('Pan abajo');
-      map.panBy([0, 50]); // Mover hacia abajo
-    });
-
-    document.getElementById('btn-home').addEventListener('click', () => {
-      console.log('Vista inicial');
-      map.fitBounds(bounds); // Volver a la vista inicial
-    });
-
-    // *** FUNCIONALIDAD DEL SELECTOR DE PROYECTO ***
-    const projectSelect = document.getElementById('project-select');
-    
-    // Definir etapas y vistas (cada etapa puede usar tamaños propios definidos en sectorSizes)
-    const sectores = {
-      'etapa-1': { bounds: makeBounds(sectorSizes['etapa-1'].width, sectorSizes['etapa-1'].height), files: ['lotes_A.json','lotes_B.json','lotes_C.json','lotes_D.json','lotes_E.json','lotes_F.json','lotes_G.json','lotes_H.json','lotes_I.json','lotes_J.json']},
-      'etapa-2': { bounds: makeBounds(sectorSizes['etapa-2'].width, sectorSizes['etapa-2'].height), files: ['lotes_D2.json','lotes_E2.json','lotes_F2.json','lotes_G2.json'] },
-      'completo': { bounds: makeBounds(sectorSizes['completo'].width, sectorSizes['completo'].height), files: [] }
-    };
-
-    projectSelect.addEventListener('change', function() {
-      const selectedSector = this.value;
-      
-      if (selectedSector && sectores[selectedSector]) {
-        console.log(`Cambiando a ${selectedSector}`);
-        // establecer el sector actual
-        currentSector = selectedSector;
-        
-        // Obtener dimensiones específicas del sector
-        const dims = sectorSizes[selectedSector] || sectorSizes['completo'];
-        const newBounds = makeBounds(dims.width, dims.height);
-        
-        // Limpiar polígonos existentes solo si es necesario
-        if (polygons.length > 0) {
-          polygons.forEach(pol => {
-            if (pol.poly) map.removeLayer(pol.poly);
-          });
-          polygons.length = 0;
-        }
-        
-        // Ajustar vista del mapa al sector/etapa seleccionado
-        map.setMaxBounds(newBounds);
-        map.fitBounds(newBounds);
-
-        // Cambiar overlay según la etapa seleccionada
-        let imageName;
-        if (selectedSector === 'etapa-2') {
-          imageName = 'ETAPA 2 img.webp';
-        } else if (selectedSector === 'etapa-1') {
-          imageName = 'ETAPA 1 img.webp';
-        } else {
-          imageName = 'ETAPA GENERAL.webp';
-        }
-        setOverlay(imageName, dims);
-        
-        // Cargar solo los archivos del sector/etapa seleccionado
-        sectores[selectedSector].files.forEach(file => {
-          cargarLotes(file);
-        });
-        
-        // Actualizar el info
-        document.getElementById('info').innerText = `Etapa: ${selectedSector.toUpperCase()} `;
-      } else if (selectedSector === '') {
-        // Vista completa por defecto
-        map.fitBounds(bounds);
-        document.getElementById('info').innerText = '← ↑ ↓ → mover | + / - escalar | R rotar | Tab cambiar lote';
-      }
-    });
-
-    // Seleccionar vista completa por defecto
-    projectSelect.value = 'completo';
-    projectSelect.dispatchEvent(new Event('change'));
-
-    console.log('Controles inicializados correctamente');
-  });
-
-  // Desactivar interactividad de polígonos durante zoom/drag para mejorar rendimiento
-  let polygonsInteractiveDisabled = false;
-  function setPolygonsInteractive(enabled) {
-    polygons.forEach(p => {
-      try { p.poly.options.interactive = enabled; } catch (e) { /* ignore */ }
-    });
-  }
-
-  // Al empezar a hacer zoom o arrastrar, desactivar interactividad para evitar muchos eventos
-  map.on('movestart zoomstart', () => {
-    if (!polygonsInteractiveDisabled) {
-      polygonsInteractiveDisabled = true;
-      setPolygonsInteractive(false);
-      // Forzar repaint mínimo
-      if (canvasRenderer && canvasRenderer._container) canvasRenderer._container.style.pointerEvents = 'none';
-    }
-  });
-
-  map.on('moveend zoomend', () => {
-    if (polygonsInteractiveDisabled) {
-      polygonsInteractiveDisabled = false;
-      setPolygonsInteractive(true);
-      if (canvasRenderer && canvasRenderer._container) canvasRenderer._container.style.pointerEvents = '';
-    }
-  });
-
-  // Throttle helper
-  function throttle(fn, wait) {
-    let last = 0;
-    return function(...args) {
-      const now = Date.now();
-      if (now - last >= wait) { last = now; fn.apply(this, args); }
-    };
-  }
-
-  // Bind/unbind popups según nivel de zoom (umbral configurable)
-  const POPUP_ZOOM_THRESHOLD = -1; // bindear popups solo cuando zoom >= threshold
-  const updatePopupsBasedOnZoom = throttle(() => {
-    const z = map.getZoom();
-    const shouldBind = z >= POPUP_ZOOM_THRESHOLD;
-    polygons.forEach(obj => {
-      try {
-        if (shouldBind && !obj.popupBound) {
-          obj.poly.bindPopup(obj.popupContent);
-          obj.popupBound = true;
-        } else if (!shouldBind && obj.popupBound) {
-          obj.poly.unbindPopup();
-          obj.popupBound = false;
-        }
-      } catch (e) { /* ignore errors */ }
-    });
-  }, 250);
-
-  map.on('zoomend', updatePopupsBasedOnZoom);
-
-</script>
+<script src="script-mapa.js"></script>
 </body>
 </html>
