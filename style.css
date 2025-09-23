@@ -82,7 +82,7 @@ body {
 .info-panel,
 .search-panel,
 .areas-panel {
-  z-index: 998 !important;
+  z-index: 1010 !important;
 }
 
 .side-panels-section {
