@@ -654,7 +654,7 @@ a:hover {
 
 /* Prevent body scroll when mobile nav open */
 .no-scroll {
-    overflow: hidden;
+    overflow: hidden !important;
 }
 
 /* Mobile Menu Logo - Optimizado para todos los dispositivos */
