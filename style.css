@@ -761,6 +761,7 @@ section.project-header {
   transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
   transform: translateX(100%);
   opacity: 0;
+  pointer-events: none;
   z-index: 1000;
   font-family: 'Poppins', sans-serif;
   display: flex;
@@ -772,6 +773,7 @@ section.project-header {
 .info-panel.visible { 
   transform: translateX(0);
   opacity: 1;
+  pointer-events: auto;
 }
 
 .panel-header { 
@@ -971,6 +973,7 @@ section.project-header {
   transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
   transform: translateX(100%);
   opacity: 0;
+  pointer-events: none;
   z-index: 1000;
   font-family: 'Poppins', sans-serif;
   display: flex;
@@ -981,6 +984,7 @@ section.project-header {
 .search-panel.visible, .areas-panel.visible { 
   transform: translateX(0);
   opacity: 1;
+  pointer-events: auto;
 }
 
 .area-item { 
