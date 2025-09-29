@@ -171,7 +171,6 @@
         <span class="status-tag" id="lote-estado">-</span>
       </div>
       <div class="info-grid">
-        <div class="info-item"><span class="label">Precio financiado</span><span class="value" id="lote-precio-financiado">-</span></div>
         <div class="info-item"><span class="label">Precio contado</span><span class="value" id="lote-precio-contado">-</span></div>
         <div class="info-item"><span class="label">Tipo de lote</span><span class="value" id="lote-tipo">-</span></div>
         <div class="info-item"><span class="label">Área</span><span class="value" id="lote-area">-</span></div>
@@ -194,6 +193,10 @@
       <button id="close-search-panel">&times;</button>
     </div>
     <div class="panel-content">
+      <div class="search-input-group">
+        <label class="filter-label">Buscar lote:</label>
+        <input type="text" id="search-text" placeholder="Ej: A1, Mz A, Lote 15..." class="search-input">
+      </div>
       <div class="filter-group">
         <label class="filter-label">Área: <span id="area-range-label">90 m² - 180 m²</span></label>
         <div class="dual-range-slider">
@@ -208,8 +211,8 @@
           <input type="range" id="price-max" min="0" max="16500" value="16500">
         </div>
       </div>
-      <div class="sort-actions">
-        <div class="sort-by" style="flex: 1;">
+      <div class="sort-actions" style="display: flex; align-items: flex-end; gap: 15px;">
+        <div class="sort-by">
           <label style="font-size: 14px; color: #888; display: block; margin-bottom: 5px;">Ordenar por</label>
           <select class="custom-select" id="sort-by-select">
             <option value="">Sin orden</option>
@@ -219,7 +222,16 @@
             <option value="price-desc">Precio (mayor a menor)</option>
           </select>
         </div>
-        <a href="#" class="clear-filters">Limpiar filtros</a>
+        <div class="filter-by">
+          <a href="#" class="clear-filters" style="font-size: 14px; display: block; margin-bottom: 5px; text-decoration: none;">Limpiar filtros</a>
+          <select class="custom-select" id="status-filter-select">
+            <option value="">Todos los estados</option>
+            <option value="disponible">Disponible</option>
+            <option value="reservado">Reservado</option>
+            <option value="vendido">Vendido</option>
+            <option value="bloqueado">Bloqueado</option>
+          </select>
+        </div>
       </div>
       <div class="results-count">
         <span id="results-count-display">Mostrando 0 lote(s)</span>
@@ -366,6 +378,15 @@
     </div>
 
     </div> <!-- Fin del contenedor page-content -->
+
+<!-- Modal para mostrar imágenes de amenidades -->
+<div id="imageModal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close">&times;</button>
+    <img id="modalImage" src="" alt="">
+    <div class="modal-title" id="modalTitle"></div>
+  </div>
+</div>
 
 <!-- =============================================
      SCRIPTS - funcionalidad del mapa extraída a script-mapa.js

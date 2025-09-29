@@ -134,57 +134,128 @@ function cargarLotes(archivo) {
     .then(lotes => {
       const batchSize = 50;
       let currentBatch = 0;
+      
+      // Verificar si estamos cargando amenidades (images.json)
+      const isAmenidades = archivo.includes('images.json');
+      
       function processBatch() {
         const start = currentBatch * batchSize;
         const end = Math.min(start + batchSize, lotes.length);
         for (let i = start; i < end; i++) {
           const lote = lotes[i];
-          const colors = {
-            "Disponible": { fill: "#ffffff", stroke: "#111827" },
-            "Reservado": { fill: "#f97316", stroke: "#ea580c" },
-            "Vendido": { fill: "#16a34a", stroke: "#15803d" },
-            "Bloqueado": { fill: "#dc2626", stroke: "#b91c1c" }
-          };
-          const colorConfig = colors[lote.estado] || colors["Bloqueado"];
+          
+          let colors, popupContent, clickHandler;
+          
+          if (isAmenidades) {
+            // Configuración para amenidades
+            colors = {
+              fill: "#e4e4e449", // Verde claro para amenidades
+              stroke: "#d7d7d775"
+            };
+            popupContent = `<b>${lote.nombre}</b><br>Tipo: ${lote.tipo}<br>Click para ver imagen`;
+            
+            // Función para abrir modal al hacer click
+            clickHandler = function(e) {
+              if (polygonsInteractiveDisabled) return;
+              openImageModal(lote.id, lote.nombre);
+            };
+          } else {
+            // Configuración para lotes normales
+            const colorMap = {
+              "Disponible": { fill: "#ffffff", stroke: "#111827" },
+              "Reservado": { fill: "#f97316", stroke: "#ea580c" },
+              "Vendido": { fill: "#16a34a", stroke: "#15803d" },
+              "Bloqueado": { fill: "#dc2626", stroke: "#b91c1c" }
+            };
+            colors = colorMap[lote.estado] || colorMap["Bloqueado"];
+            popupContent = `<b>${lote.id}</b><br>Área: ${lote.area}<br>Precio: ${lote.precio}<br>Estado: ${lote.estado}`;
+            
+            // Función de click para lotes normales (destacar y mostrar info)
+            let touchHighlighted = false;
+            clickHandler = function(e) {
+              if (polygonsInteractiveDisabled) return;
+              try {
+                // Buscar el lote en todosLosLotes para mostrar información completa
+                const loteCompleto = todosLosLotes.find(l => l.id === lote.id);
+                if (loteCompleto) {
+                  // Guardar qué panel estaba activo antes de abrir el panel de información
+                  if (searchPanel.classList.contains('visible')) {
+                    previousPanel = 'search';
+                  } else if (areasPanel.classList.contains('visible')) {
+                    previousPanel = 'areas';
+                  } else {
+                    previousPanel = null;
+                  }
+                  
+                  hideAllPanels();
+                  updatePanelInfo(loteCompleto);
+                  sidePanel.classList.add('visible');
+                }
+                
+                if (!touchHighlighted) {
+                  this.setStyle({ fillOpacity: Math.max(0.55, originalStyle.fillOpacity), weight: 2 });
+                } else {
+                  this.setStyle({ fillOpacity: originalStyle.fillOpacity, weight: originalStyle.weight });
+                }
+                touchHighlighted = !touchHighlighted;
+              } catch (err) {
+                console.warn('Error al procesar click en lote:', err);
+              }
+            };
+          }
+          
           const simplifiedCoords = simplify(lote.coords, 0.5);
           const poly = L.polygon(simplifiedCoords, {
             renderer: canvasRenderer,
-            className: 'hover-lote',
-            fillColor: colorConfig.fill,
-            color: colorConfig.stroke,
-            weight: 1,
+            className: isAmenidades ? 'hover-amenidad' : 'hover-lote',
+            fillColor: colors.fill,
+            color: colors.stroke,
+            weight: isAmenidades ? 2 : 1,
             opacity: 0.8,
-            fillOpacity: 0.4,
+            fillOpacity: isAmenidades ? 0.6 : 0.4,
             interactive: true,
             bubblingMouseEvents: false
           }).addTo(map);
-          const popupContent = `<b>${lote.id}</b><br>Área: ${lote.area}<br>Precio: ${lote.precio}<br>Estado: ${lote.estado}`;
+          
           const originalStyle = {
             fillOpacity: poly.options.fillOpacity,
             weight: poly.options.weight,
             fillColor: poly.options.fillColor,
             color: poly.options.color
           };
+          
+          // Eventos hover para todos los polígonos
           poly.on('mouseover', function(e) {
             if (polygonsInteractiveDisabled) return;
-            try { this.setStyle({ fillOpacity: Math.max(0.55, originalStyle.fillOpacity), weight: 2 }); } catch (err) {}
-          });
-          poly.on('mouseout', function(e) {
-            try { this.setStyle({ fillOpacity: originalStyle.fillOpacity, weight: originalStyle.weight }); } catch (err) {}
-          });
-          let touchHighlighted = false;
-          poly.on('click', function(e) {
-            if (polygonsInteractiveDisabled) return;
-            try {
-              if (!touchHighlighted) {
-                this.setStyle({ fillOpacity: Math.max(0.55, originalStyle.fillOpacity), weight: 2 });
-              } else {
-                this.setStyle({ fillOpacity: originalStyle.fillOpacity, weight: originalStyle.weight });
-              }
-              touchHighlighted = !touchHighlighted;
+            try { 
+              this.setStyle({ 
+                fillOpacity: Math.max(0.7, originalStyle.fillOpacity), 
+                weight: originalStyle.weight + 1 
+              }); 
             } catch (err) {}
           });
-          polygons.push({ poly, coords: lote.coords, loteData: lote, popupContent, popupBound: false, originalStyle });
+          
+          poly.on('mouseout', function(e) {
+            try { 
+              this.setStyle({ 
+                fillOpacity: originalStyle.fillOpacity, 
+                weight: originalStyle.weight 
+              }); 
+            } catch (err) {}
+          });
+          
+          // Asignar el evento click correspondiente
+          poly.on('click', clickHandler);
+          
+          polygons.push({ 
+            poly, 
+            coords: lote.coords, 
+            loteData: lote, 
+            popupContent, 
+            popupBound: false, 
+            originalStyle,
+            isAmenidad: isAmenidades  // Marcar si es amenidad para evitar popups
+          });
         }
         currentBatch++;
         if (currentBatch * batchSize < lotes.length) requestAnimationFrame(processBatch);
@@ -195,24 +266,163 @@ function cargarLotes(archivo) {
 
 function getActivo() { return polygons[activo]; }
 
-const lotesDisponibles = [
-  {
-    x: 9.15, y: 0.50, z: 15.28,
-    manzana: 'K1', lote: '21',
-    estado: 'Disponible',
-    precioFinanciado: '$ 7,300.00',
-    precioContado: '$ 6,600.00',
-    tipo: 'Residencial',
-    area: '116.56 m²',
-    dimensiones: { izquierda: '19.43 ML', derecha: '19.43 ML', frente: '6.00 ML', fondo: '6.00 ML' },
-    whatsappLink: 'https://wa.me/1234567890?text=Hola,%20estoy%20interesado%20en%20el%20lote%20K1-21'
+// Variable global para almacenar todos los lotes cargados
+let todosLosLotes = [];
+
+// Función para extraer información de la manzana y lote del ID
+function parsearLoteId(id, archivo = '') {
+  // Formato esperado: "Lote A1", "Lote B2", etc.
+  const match = id.match(/Lote ([A-Z]+)(\d+)/);
+  if (match) {
+    let manzana = match[1];
+    
+    // Si es manzana D y viene del archivo de etapa 2, agregar "2"
+    if (manzana === 'D' && archivo.includes('D2.json')) {
+      manzana = 'D2';
+    }
+    // Similar para otras manzanas de etapa 2
+    else if (manzana === 'E' && archivo.includes('E2.json')) {
+      manzana = 'E2';
+    }
+    else if (manzana === 'F' && archivo.includes('F2.json')) {
+      manzana = 'F2';
+    }
+    else if (manzana === 'G' && archivo.includes('G2.json')) {
+      manzana = 'G2';
+    }
+    
+    return {
+      manzana: manzana,
+      lote: match[2],
+      id: id
+    };
   }
-];
+  return {
+    manzana: '',
+    lote: '',
+    id: id
+  };
+}
+
+// Función para cargar todos los lotes desde los archivos JSON
+function cargarTodosLosLotes() {
+  const archivosLotes = [
+    'Coord/lotes_A.json',
+    'Coord/lotes_B.json', 
+    'Coord/lotes_C.json',
+    'Coord/lotes_D.json',
+    'Coord/lotes_D2.json',
+    'Coord/lotes_E.json',
+    'Coord/lotes_E2.json',
+    'Coord/lotes_F.json',
+    'Coord/lotes_F2.json',
+    'Coord/lotes_G.json',
+    'Coord/lotes_G2.json',
+    'Coord/lotes_H.json',
+    'Coord/lotes_I.json',
+    'Coord/lotes_J.json'
+  ];
+
+  Promise.all(archivosLotes.map(archivo => 
+    fetch(archivo)
+      .then(res => res.json())
+      .then(lotes => ({ archivo, lotes })) // Incluir el nombre del archivo
+      .catch(err => {
+        console.warn(`No se pudo cargar ${archivo}:`, err);
+        return { archivo, lotes: [] };
+      })
+  ))
+  .then(resultados => {
+    // Combinar todos los lotes en una sola lista
+    todosLosLotes = [];
+    resultados.forEach(({ archivo, lotes }) => {
+      lotes.forEach(lote => {
+        const infoLote = parsearLoteId(lote.id, archivo); // Pasar el archivo
+        const loteCompleto = {
+          ...lote,
+          manzana: infoLote.manzana,
+          loteNumero: infoLote.lote,
+          precioFinanciado: lote.precio ? `$${(parseFloat(lote.precio.replace(/[^0-9.]/g, '')) * 1.1).toFixed(0)}` : lote.precio,
+          precioContado: lote.precio,
+          tipo: 'Residencial',
+          dimensiones: {
+            izquierda: '8.00 ML',
+            derecha: '8.00 ML', 
+            frente: '15.00 ML',
+            fondo: '15.00 ML'
+          },
+          whatsappLink: `https://wa.me/51946552086?text=Hola,%20estoy%20interesado%20en%20el%20lote%20${lote.id.replace('Lote ', '')}`
+        };
+        todosLosLotes.push(loteCompleto);
+      });
+    });
+    
+    console.log(`Cargados ${todosLosLotes.length} lotes en total`);
+    
+    // Actualizar los filtros con los nuevos rangos
+    actualizarRangosFiltros();
+    
+    // Renderizar los lotes inicialmente
+    filterAndRenderLotes();
+  })
+  .catch(err => {
+    console.error('Error cargando lotes:', err);
+  });
+}
+
+// Función para actualizar los rangos de los filtros basado en los datos cargados
+function actualizarRangosFiltros() {
+  if (todosLosLotes.length === 0) return;
+  
+  // Calcular rangos de área
+  const areas = todosLosLotes.map(lote => parseFloat(lote.area.replace(/[^0-9.]/g, ''))).filter(area => !isNaN(area));
+  const areaMin = Math.floor(Math.min(...areas));
+  const areaMax = Math.ceil(Math.max(...areas));
+  
+  // Calcular rangos de precio
+  const precios = todosLosLotes.map(lote => parseFloat(lote.precio.replace(/[^0-9.]/g, ''))).filter(precio => !isNaN(precio));
+  const precioMin = Math.floor(Math.min(...precios));
+  const precioMax = Math.ceil(Math.max(...precios));
+  
+  // Actualizar sliders de área
+  const areaMinSlider = document.getElementById('area-min');
+  const areaMaxSlider = document.getElementById('area-max');
+  if (areaMinSlider && areaMaxSlider) {
+    areaMinSlider.min = areaMin;
+    areaMinSlider.max = areaMax;
+    areaMinSlider.value = areaMin;
+    areaMaxSlider.min = areaMin;
+    areaMaxSlider.max = areaMax;
+    areaMaxSlider.value = areaMax;
+  }
+  
+  // Actualizar sliders de precio
+  const precioMinSlider = document.getElementById('price-min');
+  const precioMaxSlider = document.getElementById('price-max');
+  if (precioMinSlider && precioMaxSlider) {
+    precioMinSlider.min = precioMin;
+    precioMinSlider.max = precioMax;
+    precioMinSlider.value = precioMin;
+    precioMaxSlider.min = precioMin;
+    precioMaxSlider.max = precioMax;
+    precioMaxSlider.value = precioMax;
+  }
+}
 
 const areasComunes = [
-  { nombre: 'Piscina', coords: { x: 0, y: 0, z: 0 } },
-  { nombre: 'Cancha de Tenis', coords: { x: 10, y: 0, z: 10 } },
-  { nombre: 'Parque Infantil', coords: { x: -10, y: 0, z: -10 } }
+  { id: 'club-house', nombre: 'Club House', tipo: 'Recreación' },
+  { id: 'clinica-casa-bonita', nombre: 'Clínica Casa Bonita', tipo: 'Salud' },
+  { id: 'iglesia', nombre: 'Iglesia', tipo: 'Religión' },
+  { id: 'instituto', nombre: 'Instituto', tipo: 'Educación' },
+  { id: 'ciclovia-abajo-derecha', nombre: 'Ciclovía', tipo: 'Recreación' },
+  { id: 'gimnasio-etapa2', nombre: 'Gimnasio Etapa 2', tipo: 'Deportes' },
+  { id: 'parque-sostenible-etapa2', nombre: 'Parque Sostenible', tipo: 'Ecología' },
+  { id: 'parque-amarillo-meditacion', nombre: 'Parque de Meditación', tipo: 'Bienestar' },
+  { id: 'parque-animales', nombre: 'Parque de Animales', tipo: 'Entretenimiento' },
+  { id: 'parque-cultural', nombre: 'Parque Cultural', tipo: 'Cultura' },
+  { id: 'parque-running', nombre: 'Parque Running', tipo: 'Deportes' },
+  { id: 'parque-general', nombre: 'Parque General', tipo: 'Recreación' },
+  { id: 'parque-infantil', nombre: 'Parque Infantil', tipo: 'Niños' }
 ];
 
 const sidePanel = document.getElementById('side-panel');
@@ -225,6 +435,26 @@ const btnAreas = document.getElementById('btn-areas');
 const btnLotes = document.getElementById('btn-lotes');
 const areasList = document.getElementById('areas-list');
 let selectedLote = null;
+
+// Variable para rastrear desde qué panel se abrió el panel de información
+let previousPanel = null;
+
+// Función para manejar el botón "Volver"
+function volverAlPanelAnterior() {
+  if (previousPanel === 'search') {
+    hideAllPanels();
+    searchPanel.classList.add('visible');
+    btnLotes.classList.add('active');
+  } else if (previousPanel === 'areas') {
+    hideAllPanels();
+    areasPanel.classList.add('visible');
+    btnAreas.classList.add('active');
+  } else {
+    // Si no hay panel anterior, simplemente cerrar
+    hideAllPanels();
+  }
+  previousPanel = null;
+}
 
 function setupDualRangeSliders() {
   const sliders = document.querySelectorAll('.dual-range-slider');
@@ -259,9 +489,18 @@ function resetFilters() {
   const areaMax = document.getElementById('area-max');
   const priceMin = document.getElementById('price-min');
   const priceMax = document.getElementById('price-max');
-  areaMin.value = areaMin.min; areaMax.value = areaMax.max; priceMin.value = priceMin.min; priceMax.value = priceMax.max;
+  const searchText = document.getElementById('search-text');
+  
+  areaMin.value = areaMin.min; 
+  areaMax.value = areaMax.max; 
+  priceMin.value = priceMin.min; 
+  priceMax.value = priceMax.max;
+  searchText.value = '';
+  
   document.getElementById('sort-by-select').selectedIndex = 0;
-  setupDualRangeSliders(); filterAndRenderLotes();
+  document.getElementById('status-filter-select').selectedIndex = 0;
+  setupDualRangeSliders(); 
+  filterAndRenderLotes();
 }
 
 function filterAndRenderLotes() {
@@ -270,18 +509,30 @@ function filterAndRenderLotes() {
   const priceMin = parseInt(document.getElementById('price-min').value);
   const priceMax = parseInt(document.getElementById('price-max').value);
   const sortBy = document.getElementById('sort-by-select').value;
+  const statusFilter = document.getElementById('status-filter-select').value;
+  const searchText = document.getElementById('search-text').value;
+  
   const resultsContainer = document.querySelector('#search-panel .panel-content');
   resultsContainer.querySelectorAll('.lote-result-card').forEach(card => card.remove());
-  let filteredLotes = lotesDisponibles.filter(lote => {
+  
+  // Primero filtrar por texto de búsqueda
+  let filteredLotes = buscarLotesPorTexto(searchText);
+  
+  // Luego aplicar filtros de área, precio y estado
+  filteredLotes = filteredLotes.filter(lote => {
     const area = parseFloat(lote.area.replace(/[^0-9.]/g, ''));
-    const price = parseFloat(lote.precioContado.replace(/[^0-9.]/g, ''));
-    return area >= areaMin && area <= areaMax && price >= priceMin && price <= priceMax;
+    const price = parseFloat(lote.precio.replace(/[^0-9.]/g, ''));
+    const estadoMatch = !statusFilter || lote.estado.toLowerCase() === statusFilter.toLowerCase();
+    return area >= areaMin && area <= areaMax && price >= priceMin && price <= priceMax && estadoMatch;
   });
+  
+  // Ordenar los lotes
   filteredLotes.sort((a, b) => {
     const areaA = parseFloat(a.area.replace(/[^0-9.]/g, ''));
     const areaB = parseFloat(b.area.replace(/[^0-9.]/g, ''));
-    const priceA = parseFloat(a.precioContado.replace(/[^0-9.]/g, ''));
-    const priceB = parseFloat(b.precioContado.replace(/[^0-9.]/g, ''));
+    const priceA = parseFloat(a.precio.replace(/[^0-9.]/g, ''));
+    const priceB = parseFloat(b.precio.replace(/[^0-9.]/g, ''));
+    
     switch (sortBy) {
       case 'area-asc': return areaA - areaB;
       case 'area-desc': return areaB - areaA;
@@ -290,20 +541,28 @@ function filterAndRenderLotes() {
       default: return 0;
     }
   });
+  
   const countDisplay = document.getElementById('results-count-display');
   countDisplay.textContent = `Mostrando ${filteredLotes.length} lote(s)`;
+  
+  // Renderizar cada lote
   filteredLotes.forEach(lote => {
     const card = document.createElement('div');
     card.className = 'lote-result-card';
+    
+    // Obtener clase de color basada en estado
+    const estadoClass = lote.estado.toLowerCase().replace(/[^a-z]/g, '');
+    
     card.innerHTML = `
-      <h4>Mz. ${lote.manzana} - Lote ${lote.lote}</h4>
+      <h4>Mz. ${lote.manzana} - Lote ${lote.loteNumero}</h4>
       <div class="card-info-grid">
-        <div><span class="label">Estado</span><span class="value available">${lote.estado}</span></div>
+        <div><span class="label">Estado</span><span class="value status-${estadoClass}">${lote.estado}</span></div>
         <div><span class="label">Área</span><span class="value">${lote.area}</span></div>
-        <div><span class="label">Precio</span><span class="value">${lote.precioContado}</span></div>
+        <div><span class="label">Precio</span><span class="value">${lote.precio}</span></div>
       </div>
-      <button class="ver-mas-btn">Ver más</button>
+      <button class="ver-mas-btn" onclick="verDetalleLote('${lote.id}')">Ver más</button>
     `;
+    
     resultsContainer.appendChild(card);
   });
 }
@@ -321,38 +580,163 @@ function renderAreasComunes() {
   for (const area of areasComunes) {
     const item = document.createElement('div');
     item.className = 'area-item';
-    item.textContent = area.nombre;
-    item.onclick = () => { alert(`Has hecho clic en ${area.nombre}`); };
+    item.innerHTML = `
+      <div class="area-info">
+        <h4 class="area-name">${area.nombre}</h4>
+        <span class="area-type">${area.tipo}</span>
+      </div>
+      <button class="area-view-btn">Ver imagen</button>
+    `;
+    
+    // Al hacer click en el item o botón, abrir modal con imagen
+    const viewButton = item.querySelector('.area-view-btn');
+    viewButton.onclick = (e) => {
+      e.stopPropagation();
+      openImageModal(area.id, area.nombre);
+    };
+    
+    item.onclick = () => {
+      openImageModal(area.id, area.nombre);
+    };
+    
     areasList.appendChild(item);
+  }
+}
+
+// Global functions to be accessible from HTML onclick attributes
+window.verDetalleLote = verDetalleLote;
+
+// Función para buscar lotes por texto (ID, manzana, etc.)
+function buscarLotesPorTexto(texto) {
+  if (!texto || texto.trim() === '') return todosLosLotes;
+
+  const q = String(texto).toLowerCase().replace(/\blote\b/g, '').replace(/[^a-z0-9\s]/g, ' ').trim();
+  const parts = q.split(/\s+/).filter(Boolean);
+  const num = parts.find(p => /^\d+$/.test(p));
+  const man = (parts.find(p => /[a-z]/.test(p)) || '').replace(/\d+$/, '');
+
+  return todosLosLotes.filter(l => {
+    if (!l) return false;
+    const id = (l.id||'').toString().toLowerCase();
+    const m = (l.manzana||'').toString().toLowerCase().replace(/\d+$/, '');
+    const n = (l.loteNumero||'').toString().toLowerCase();
+
+    if (man && num) return m === man && n === num;
+    if (num && parts.length === 1) return n.includes(num);
+    const qfull = q;
+    return id.includes(qfull) || m.includes(qfull) || n.includes(qfull) || (m+n).includes(qfull);
+  });
+}
+
+// Función para mostrar detalles de un lote específico
+function verDetalleLote(loteId) {
+  const lote = todosLosLotes.find(l => l.id === loteId);
+  if (lote) {
+    // Guardar qué panel estaba activo antes de abrir el panel de información
+    if (searchPanel.classList.contains('visible')) {
+      previousPanel = 'search';
+    } else if (areasPanel.classList.contains('visible')) {
+      previousPanel = 'areas';
+    } else {
+      previousPanel = null;
+    }
+    
+    // Cerrar todos los paneles y abrir el panel de información
+    hideAllPanels();
+    updatePanelInfo(lote);
+    sidePanel.classList.add('visible');
+    
+    // Buscar y resaltar el polígono correspondiente en el mapa
+    const poligonoObj = polygons.find(p => p.loteData && p.loteData.id === loteId);
+    if (poligonoObj && poligonoObj.poly) {
+      try {
+        // Centrar el mapa en el lote
+        const bounds = L.latLngBounds(lote.coords);
+        map.fitBounds(bounds, { padding: [50, 50] });
+        
+        // Resaltar temporalmente el polígono
+        const originalStyle = poligonoObj.originalStyle;
+        poligonoObj.poly.setStyle({ 
+          fillOpacity: 0.8, 
+          weight: 3,
+          color: '#2563eb' // Color azul para resaltar
+        });
+        
+        // Restaurar estilo después de 3 segundos
+        setTimeout(() => {
+          if (poligonoObj.poly) {
+            poligonoObj.poly.setStyle(originalStyle);
+          }
+        }, 3000);
+        
+      } catch (e) {
+        console.warn('No se pudo centrar o resaltar el lote en el mapa:', e);
+      }
+    }
   }
 }
 
 function updatePanelInfo(lote) {
   if (!lote) return;
-  document.getElementById('lote-id').textContent = `Mz. ${lote.manzana} - Lote ${lote.lote}`;
+  
+  // Actualizar información básica
+  document.getElementById('lote-id').textContent = `Mz. ${lote.manzana} - Lote ${lote.loteNumero}`;
   document.getElementById('lote-estado').textContent = lote.estado || '-';
-  document.getElementById('lote-precio-financiado').textContent = lote.precioFinanciado || '-';
-  document.getElementById('lote-precio-contado').textContent = lote.precioContado || '-';
-  document.getElementById('lote-tipo').textContent = lote.tipo || '-';
+  document.getElementById('lote-estado').className = `status-tag status-${lote.estado.toLowerCase().replace(/[^a-z]/g, '')}`;
+  
+  // Precios
+  document.getElementById('lote-precio-contado').textContent = lote.precio || '-';
+  
+  // Información adicional
+  document.getElementById('lote-tipo').textContent = lote.tipo || 'Residencial';
   document.getElementById('lote-area').textContent = lote.area || '-';
-  document.getElementById('dim-izquierda').textContent = lote.dimensiones.izquierda || '-';
-  document.getElementById('dim-derecha').textContent = lote.dimensiones.derecha || '-';
-  document.getElementById('dim-frente').textContent = lote.dimensiones.frente || '-';
-  document.getElementById('dim-fondo').textContent = lote.dimensiones.fondo || '-';
-  document.getElementById('whatsapp-link').href = lote.whatsappLink || '#';
+  
+  // Dimensiones (usar valores por defecto si no están disponibles)
+  const dimensiones = lote.dimensiones || {
+    izquierda: '8.00 ML',
+    derecha: '8.00 ML', 
+    frente: '15.00 ML',
+    fondo: '15.00 ML'
+  };
+  
+  document.getElementById('dim-izquierda').textContent = dimensiones.izquierda || '-';
+  document.getElementById('dim-derecha').textContent = dimensiones.derecha || '-';
+  document.getElementById('dim-frente').textContent = dimensiones.frente || '-';
+  document.getElementById('dim-fondo').textContent = dimensiones.fondo || '-';
+  
+  // Link de WhatsApp
+  document.getElementById('whatsapp-link').href = lote.whatsappLink || 
+    `https://wa.me/51946552086?text=Hola,%20estoy%20interesado%20en%20el%20lote%20${lote.id.replace('Lote ', '')}`;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
   console.log('Inicializando controles...');
+  
+  // Cargar todos los lotes desde los archivos JSON
+  cargarTodosLosLotes();
+  
   setupDualRangeSliders();
   filterAndRenderLotes();
+  
+  // Event listeners para filtros
   document.getElementById('sort-by-select').addEventListener('change', filterAndRenderLotes);
+  document.getElementById('status-filter-select').addEventListener('change', filterAndRenderLotes);
+  document.getElementById('search-text').addEventListener('input', filterAndRenderLotes);
   document.querySelector('.clear-filters').addEventListener('click', (e) => { e.preventDefault(); resetFilters(); });
   btnLotes.addEventListener('click', () => { hideAllPanels(); searchPanel.classList.add('visible'); btnLotes.classList.add('active'); });
   btnAreas.addEventListener('click', () => { hideAllPanels(); areasPanel.classList.add('visible'); btnAreas.classList.add('active'); renderAreasComunes(); });
   closePanelButton.addEventListener('click', () => { hideAllPanels(); });
   closeSearchPanelButton.addEventListener('click', () => { hideAllPanels(); });
   closeAreasPanelButton.addEventListener('click', () => { hideAllPanels(); });
+  
+  // Event listener para el botón "Volver"
+  const backButton = document.querySelector('.back-button');
+  if (backButton) {
+    backButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      volverAlPanelAnterior();
+    });
+  }
   document.getElementById('btn-zoom-in').addEventListener('click', () => { map.zoomIn(); });
   document.getElementById('btn-zoom-out').addEventListener('click', () => { map.zoomOut(); });
   document.getElementById('btn-cam-up').addEventListener('click', () => { map.panBy([0, -50]); });
@@ -429,8 +813,15 @@ const updatePopupsBasedOnZoom = throttle(() => {
   const shouldBind = z >= POPUP_ZOOM_THRESHOLD;
   polygons.forEach(obj => {
     try {
-      if (shouldBind && !obj.popupBound) { obj.poly.bindPopup(obj.popupContent); obj.popupBound = true; }
-      else if (!shouldBind && obj.popupBound) { obj.poly.unbindPopup(); obj.popupBound = false; }
+      // Solo vincular popups si NO es una amenidad
+      if (shouldBind && !obj.popupBound && !obj.isAmenidad) { 
+        obj.poly.bindPopup(obj.popupContent); 
+        obj.popupBound = true; 
+      }
+      else if (!shouldBind && obj.popupBound) { 
+        obj.poly.unbindPopup(); 
+        obj.popupBound = false; 
+      }
     } catch (e) {}
   });
 }, 250);
@@ -497,3 +888,77 @@ window.openWhatsApp = function(source) {
     window.open(url, '_blank', 'noopener,noreferrer');
   } catch (err) { console.error('No se pudo abrir WhatsApp', err); }
 };
+
+// =============================================
+// MODAL PARA MOSTRAR IMÁGENES DE AMENIDADES
+// =============================================
+
+// Mapeo de IDs de amenidades a nombres de archivos de imagen
+const amenidadImageMap = {
+  'club-house': 'Club House Casa Bonita Residencial Casa Bonita Grau Piura.png',
+  'clinica-casa-bonita': 'Clinica_Casa Bonita Residencial Casa Bonita Grau Piura.png',
+  'iglesia': 'iglesia.png',
+  'instituto': 'Instituto en la colina_Casa Bonita Residencial Casa Bonita Grau Piura.png',
+  'ciclovia-abajo-derecha': 'Ciclovía entre Árboles y Viviendas_Casa Bonita Residencial Casa Bonita Grau Piura.png',
+  'gimnasio-etapa2': 'GYMNASIO_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
+  'parque-sostenible-etapa2': 'PARQUE SOSTENIBLE_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
+  'parque-amarillo-meditacion': 'Parque Amarillo Meditacion Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
+  'parque-animales': 'PARQUE ANIMALES_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
+  'parque-cultural': 'PARQUE CULTURAL_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
+  'parque-running': 'PARQUE F2 RUNNING_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
+  'parque-general': 'PARQUE GENERAL_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
+  'parque-infantil': 'PARQUE INFANTIL_Casa Bonita Residencial Casa Bonita Grau Piura.PNG'
+};
+
+function openImageModal(amenidadId, amenidadNombre) {
+  const modal = document.getElementById('imageModal');
+  const modalImage = document.getElementById('modalImage');
+  const modalTitle = document.getElementById('modalTitle');
+  
+  // Obtener el nombre del archivo de imagen
+  const imageName = amenidadImageMap[amenidadId];
+  if (!imageName) {
+    console.warn(`No se encontró imagen para la amenidad: ${amenidadId}`);
+    return;
+  }
+  
+  // Configurar la imagen y título
+  modalImage.src = `images/${imageName}`;
+  modalImage.alt = amenidadNombre;
+  modalTitle.textContent = amenidadNombre;
+  
+  // Mostrar el modal y bloquear scroll
+  modal.classList.add('show');
+  document.body.classList.add('no-scroll');
+  document.documentElement.classList.add('no-scroll');
+}
+
+function closeImageModal() {
+  const modal = document.getElementById('imageModal');
+  modal.classList.remove('show');
+  document.body.classList.remove('no-scroll');
+  document.documentElement.classList.remove('no-scroll');
+}
+
+// Configurar eventos del modal cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('imageModal');
+  const closeButton = modal.querySelector('.modal-close');
+  
+  // Cerrar modal al hacer click en X
+  closeButton.addEventListener('click', closeImageModal);
+  
+  // Cerrar modal al hacer click en el overlay (fondo)
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      closeImageModal();
+    }
+  });
+  
+  // Cerrar modal con tecla Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal.classList.contains('show')) {
+      closeImageModal();
+    }
+  });
+});

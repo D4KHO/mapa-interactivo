@@ -777,7 +777,7 @@ section.project-header {
 }
 
 .panel-header { 
-  padding: 15px 20px; 
+  padding: 8px 20px; 
   display: flex; 
   justify-content: space-between; 
   align-items: center; 
@@ -789,13 +789,29 @@ section.project-header {
   font-size: 16px; 
 }
 
-#close-panel { 
-  background: none; 
+#close-panel, #close-search-panel, #close-areas-panel { 
+  background: rgba(255, 255, 255, 0.9);
   border: none; 
-  font-size: 28px; 
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px; 
   cursor: pointer; 
-  color: #aaa; 
-  line-height: 1; 
+  color: #666;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-weight: 300;
+}
+
+#close-panel:hover, #close-search-panel:hover, #close-areas-panel:hover {
+  background: #ff4757;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255,71,87,0.3);
 }
 
 .panel-content { 
@@ -991,17 +1007,87 @@ section.project-header {
   padding: 15px 20px; 
   border-bottom: 1px solid #eee; 
   cursor: pointer; 
-  transition: background-color 0.2s; 
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .area-item:hover { 
-  background-color: var(--light-gray); 
+  background-color: var(--light-gray);
+  transform: translateX(5px);
+}
+
+.area-item:last-child {
+  border-bottom: none;
+}
+
+.area-info {
+  flex: 1;
+}
+
+.area-name {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.area-type {
+  font-size: 12px;
+  color: var(--muted-text);
+  background: var(--secondary-color);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.area-view-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.area-view-btn:hover {
+  background: var(--accent-color);
+  transform: scale(1.05);
 }
 
 /* --- Estilos para el Buscador de Lotes --- */
-.search-panel .panel-content { padding: 20px 25px; overflow-y: auto; }
-.filter-group { margin-bottom: 25px; }
-.filter-label { font-weight: 600; color: #333; margin-bottom: 10px; display: block; }
+.search-panel .panel-content { padding: 4px 25px; overflow-y: auto; }
+.filter-group { margin-bottom: 20px; }
+.filter-label { display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-color); }
+
+/* Estilos para el campo de búsqueda de texto */
+.search-input-group {
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 95%;
+  padding: 12px;
+  border: 1px solid var(--medium-gray);
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: var(--white);
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.search-input::placeholder {
+  color: var(--muted-text);
+}
 .filter-group .range-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--medium-gray); outline: none; border-radius: 2px; }
 .filter-group .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--white); border: 2px solid #0056b3; box-shadow: 0 1px 4px rgba(0,0,0,0.2); cursor: pointer; }
 .filter-group .range-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--white); border: 2px solid #0056b3; box-shadow: 0 1px 4px rgba(0,0,0,0.2); cursor: pointer; }
@@ -1014,6 +1100,62 @@ section.project-header {
 .card-info-grid .label { font-size: 12px; color: var(--muted-text); display: block; }
 .card-info-grid .value { font-size: 14px; font-weight: 600; color: var(--text-color); }
 .card-info-grid .value.available { color: var(--available-text); }
+
+/* Estilos para los diferentes estados de lotes en las tarjetas del buscador */
+.card-info-grid .value.status-disponible {
+  color: var(--available-text);
+  background: var(--available-bg);
+  border: 1px solid #111827;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.card-info-grid .value.status-reservado {
+  color: var(--reserved-text);
+  background: var(--reserved-bg);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.card-info-grid .value.status-vendido {
+  color: var(--sold-text);
+  background: var(--sold-bg);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.card-info-grid .value.status-bloqueado {
+  color: var(--blocked-text);
+  background: var(--blocked-bg);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+/* Estilos para el status tag en el panel de información */
+.status-tag.status-disponible {
+  background: var(--available-bg);
+  color: var(--available-text);
+  border: 1px solid #111827;
+}
+
+.status-tag.status-reservado {
+  background: var(--reserved-bg);
+  color: var(--reserved-text);
+}
+
+.status-tag.status-vendido {
+  background: var(--sold-bg);
+  color: var(--sold-text);
+}
+
+.status-tag.status-bloqueado {
+  background: var(--blocked-bg);
+  color: var(--blocked-text);
+}
 .ver-mas-btn { width: 100%; background: var(--white); border: 1px solid var(--medium-gray); padding: 10px; border-radius: 20px; cursor: pointer; transition: background-color 0.2s; }
 .ver-mas-btn:hover { background-color: var(--light-gray); }
 
@@ -1098,10 +1240,10 @@ section.project-header {
   }
   
   /* Mejorar botones de cierre en móvil */
-  #close-panel, #close-search-panel {
-    font-size: 32px;
-    padding: 5px;
-    color: #666;
+  #close-panel, #close-search-panel, #close-areas-panel {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
   }
   
   /* Mejorar contenido del panel */
@@ -1155,5 +1297,115 @@ section.project-header {
   .dual-range-slider input[type=range]::-webkit-slider-thumb {
     width: 28px; /* Controles más grandes para touch */
     height: 28px;
+  }
+}
+
+/* =============================================
+   MODAL PARA MOSTRAR IMÁGENES DE AMENIDADES
+   ============================================= */
+
+/* Bloquear scroll cuando modal abierto */
+.no-scroll { overflow: hidden !important; }
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10000;
+  cursor: pointer;
+}
+
+.modal-overlay.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 80vh;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: default;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #666;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  font-weight: 300;
+}
+
+.modal-close:hover {
+  background: #ff4757;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+}
+
+#modalImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.modal-title {
+  padding: 15px 20px;
+  background: var(--secondary-color);
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  font-size: 16px;
+}
+
+/* Estilos específicos para amenidades en el mapa */
+.hover-amenidad {
+  cursor: pointer !important;
+  transition: all 0.2s ease;
+}
+
+.hover-amenidad:hover {
+  filter: brightness(1.1);
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    max-width: 95vw;
+    max-height: 85vh;
+  }
+  
+  #modalImage {
+    max-height: 75vh;
+  }
+  
+  .modal-close {
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
+    top: 10px;
+    right: 10px;
   }
 }
