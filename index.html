@@ -171,7 +171,6 @@
         <span class="status-tag" id="lote-estado">-</span>
       </div>
       <div class="info-grid">
-        <div class="info-item"><span class="label">Precio contado</span><span class="value" id="lote-precio-contado">-</span></div>
         <div class="info-item"><span class="label">Tipo de lote</span><span class="value" id="lote-tipo">-</span></div>
         <div class="info-item"><span class="label">Área</span><span class="value" id="lote-area">-</span></div>
       </div>
@@ -204,13 +203,6 @@
           <input type="range" id="area-max" min="90" max="180" value="180">
         </div>
       </div>
-      <div class="filter-group">
-        <label class="filter-label">Precio: <span id="price-range-label">$0 - $16,500</span></label>
-        <div class="dual-range-slider">
-          <input type="range" id="price-min" min="0" max="16500" value="0">
-          <input type="range" id="price-max" min="0" max="16500" value="16500">
-        </div>
-      </div>
       <div class="sort-actions" style="display: flex; align-items: flex-end; gap: 15px;">
         <div class="sort-by">
           <label style="font-size: 14px; color: #888; display: block; margin-bottom: 5px;">Ordenar por</label>
@@ -218,8 +210,6 @@
             <option value="">Sin orden</option>
             <option value="area-asc">Área (menor a mayor)</option>
             <option value="area-desc">Área (mayor a menor)</option>
-            <option value="price-asc">Precio (menor a mayor)</option>
-            <option value="price-desc">Precio (mayor a menor)</option>
           </select>
         </div>
         <div class="filter-by">

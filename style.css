@@ -1,6 +1,6 @@
-/* === INTEGRACIÓN DE ESTILOS DEL <style> INTERNO DE index2_fixed.html === */
- :root {
-  /* Paleta local para style.css (en caso de que style_header_footer.css sea revertido) */
+/* === OPTIMIZACIONES DE RENDIMIENTO Y VARIABLES CSS === */
+:root {
+  /* Paleta consolidada y optimizada */
   --forest-green-dark: #0b2e20;
   --primary-color: #e0b639;
   --secondary-color: #27503e;
@@ -15,18 +15,18 @@
   --shadow: 0 8px 24px rgba(2,6,23,0.08);
   --shadow-strong: 0 12px 40px rgba(2,6,23,0.12);
   --border-radius: 10px;
-  /* Estados: disponible = blanco, reservado = naranja, vendido = verde, bloqueado = rojo */
-  --available-bg: #ffffff;      /* disponible = blanco */
-  --available-text: #111827;    /* texto oscuro sobre blanco */
-
-  --reserved-bg: #f97316;       /* reservado = anaranjado */
+  
+  /* Estados de lotes */
+  --available-bg: #ffffff;
+  --available-text: #111827;
+  --reserved-bg: #f97316;
   --reserved-text: #ffffff;
-
-  --sold-bg: #16a34a;           /* vendido = verde */
+  --sold-bg: #16a34a;
   --sold-text: #ffffff;
-
-  --blocked-bg: #dc2626;        /* bloqueado = rojo */
+  --blocked-bg: #dc2626;
   --blocked-text: #ffffff;
+  
+  /* Colores de acción */
   --btn-muted: #6b7280;
   --btn-primary: #2563eb;
   --whatsapp: #25D366;
@@ -78,7 +78,7 @@ body {
   z-index: 9998 !important;
 }
 
-/* Paneles laterales z-index */
+/* === Z-INDEX CONSOLIDADO === */
 .info-panel,
 .search-panel,
 .areas-panel {
@@ -90,8 +90,9 @@ body {
   z-index: 995;
 }
 
-/* Ajustes de overflow para evitar scrolls indeseados */
-.map-container, .map-wrapper {
+/* === CONTENEDORES PRINCIPALES === */
+.map-container,
+.map-wrapper {
   overflow: visible !important;
 }
 
@@ -147,15 +148,13 @@ canvas {
    ============================================= */
 
 section.project-header {
-  /* Mantener el fondo blanco según lo solicitado; usar acentos del footer para botones y estados */
   background: black;
   padding: 14px 20px;
-  /* Restaurar y mejorar la sombra para dar profundidad similar al diseño previo */
   box-shadow: var(--shadow-strong), 0 1px 2px rgba(2,6,23,0.04);
   border-bottom: 1px solid rgba(2,6,23,0.04);
   position: relative;
   z-index: 1;
-  color: var(--text-color, #222);
+  color: var(--text-color);
   backdrop-filter: blur(6px);
 }
 
@@ -165,7 +164,7 @@ section.project-header {
   justify-content: space-between;
   max-width: 1200px;
   margin: 0 auto;
-  gap: 18px; /* Ajuste visual para mejor separación */
+  gap: 18px;
 }
 
 .project-selector {
@@ -173,7 +172,7 @@ section.project-header {
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
-  min-width: 200px; /* Ancho mínimo para consistencia */
+  min-width: 200px;
 }
 
 .header-nav {
@@ -182,7 +181,7 @@ section.project-header {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  min-width: 200px; /* Ancho mínimo para balancear con project-selector */
+  min-width: 200px;
 }
 
 /* =============================================
@@ -196,27 +195,23 @@ section.project-header {
   
   .header-main {
     flex-direction: column;
-    gap: 8px; /* Reducido para header más compacto */
+    gap: 8px;
   }
   
-  .header-nav {
-    gap: 10px;
-    min-width: auto; /* Quitar ancho mínimo en móviles */
-  }
-  
+  .header-nav,
   .project-selector {
-    justify-content: center;
     gap: 10px;
-    min-width: auto; /* Quitar ancho mínimo en móviles */
+    min-width: auto;
+    justify-content: center;
   }
   
   .header-nav .ui-button {
-    padding: 7px 14px; /* Más compacto */
+    padding: 7px 14px;
     font-size: 13px;
   }
   
   .project-selector select {
-    min-width: 160px; /* Reducido */
+    min-width: 160px;
     padding: 7px 10px;
     font-size: 13px;
   }
@@ -228,11 +223,11 @@ section.project-header {
 
 @media (max-width: 480px) {
   section.project-header {
-    padding: 8px 10px; /* Más compacto */
+    padding: 8px 10px;
   }
   
   .header-main {
-    gap: 6px; /* Gap aún menor */
+    gap: 6px;
   }
   
   .header-nav {
@@ -240,7 +235,7 @@ section.project-header {
   }
   
   .header-nav .ui-button {
-    padding: 6px 12px; /* Muy compacto */
+    padding: 6px 12px;
     font-size: 12px;
   }
   
@@ -342,7 +337,7 @@ section.project-header {
 }
 
 .stage-btn[aria-pressed="true"] .thumb {
-  background: var(--primary-color, #e0b639);
+  background: var(--accent-color);
   transform: scale(1.1);
 }
 

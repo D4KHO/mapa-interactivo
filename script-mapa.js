@@ -149,7 +149,7 @@ function cargarLotes(archivo) {
           if (isAmenidades) {
             // Configuración para amenidades
             colors = {
-              fill: "#e4e4e449", // Verde claro para amenidades
+              fill: "#f3eac6d2", // Verde claro para amenidades
               stroke: "#d7d7d775"
             };
             popupContent = `<b>${lote.nombre}</b><br>Tipo: ${lote.tipo}<br>Click para ver imagen`;
@@ -168,7 +168,7 @@ function cargarLotes(archivo) {
               "Bloqueado": { fill: "#dc2626", stroke: "#b91c1c" }
             };
             colors = colorMap[lote.estado] || colorMap["Bloqueado"];
-            popupContent = `<b>${lote.id}</b><br>Área: ${lote.area}<br>Precio: ${lote.precio}<br>Estado: ${lote.estado}`;
+            popupContent = `<b>${lote.id}</b><br>Área: ${lote.area}<br><br>Estado: ${lote.estado}`;
             
             // Función de click para lotes normales (destacar y mostrar info)
             let touchHighlighted = false;
@@ -342,8 +342,6 @@ function cargarTodosLosLotes() {
           ...lote,
           manzana: infoLote.manzana,
           loteNumero: infoLote.lote,
-          precioFinanciado: lote.precio ? `$${(parseFloat(lote.precio.replace(/[^0-9.]/g, '')) * 1.1).toFixed(0)}` : lote.precio,
-          precioContado: lote.precio,
           tipo: 'Residencial',
           dimensiones: {
             izquierda: '8.00 ML',
@@ -379,11 +377,6 @@ function actualizarRangosFiltros() {
   const areaMin = Math.floor(Math.min(...areas));
   const areaMax = Math.ceil(Math.max(...areas));
   
-  // Calcular rangos de precio
-  const precios = todosLosLotes.map(lote => parseFloat(lote.precio.replace(/[^0-9.]/g, ''))).filter(precio => !isNaN(precio));
-  const precioMin = Math.floor(Math.min(...precios));
-  const precioMax = Math.ceil(Math.max(...precios));
-  
   // Actualizar sliders de área
   const areaMinSlider = document.getElementById('area-min');
   const areaMaxSlider = document.getElementById('area-max');
@@ -396,17 +389,6 @@ function actualizarRangosFiltros() {
     areaMaxSlider.value = areaMax;
   }
   
-  // Actualizar sliders de precio
-  const precioMinSlider = document.getElementById('price-min');
-  const precioMaxSlider = document.getElementById('price-max');
-  if (precioMinSlider && precioMaxSlider) {
-    precioMinSlider.min = precioMin;
-    precioMinSlider.max = precioMax;
-    precioMinSlider.value = precioMin;
-    precioMaxSlider.min = precioMin;
-    precioMaxSlider.max = precioMax;
-    precioMaxSlider.value = precioMax;
-  }
 }
 
 const areasComunes = [
@@ -487,14 +469,10 @@ function setupDualRangeSliders() {
 function resetFilters() {
   const areaMin = document.getElementById('area-min');
   const areaMax = document.getElementById('area-max');
-  const priceMin = document.getElementById('price-min');
-  const priceMax = document.getElementById('price-max');
   const searchText = document.getElementById('search-text');
   
   areaMin.value = areaMin.min; 
   areaMax.value = areaMax.max; 
-  priceMin.value = priceMin.min; 
-  priceMax.value = priceMax.max;
   searchText.value = '';
   
   document.getElementById('sort-by-select').selectedIndex = 0;
@@ -506,8 +484,6 @@ function resetFilters() {
 function filterAndRenderLotes() {
   const areaMin = parseInt(document.getElementById('area-min').value);
   const areaMax = parseInt(document.getElementById('area-max').value);
-  const priceMin = parseInt(document.getElementById('price-min').value);
-  const priceMax = parseInt(document.getElementById('price-max').value);
   const sortBy = document.getElementById('sort-by-select').value;
   const statusFilter = document.getElementById('status-filter-select').value;
   const searchText = document.getElementById('search-text').value;
@@ -518,26 +494,21 @@ function filterAndRenderLotes() {
   // Primero filtrar por texto de búsqueda
   let filteredLotes = buscarLotesPorTexto(searchText);
   
-  // Luego aplicar filtros de área, precio y estado
+  // Luego aplicar filtros de área y estado
   filteredLotes = filteredLotes.filter(lote => {
     const area = parseFloat(lote.area.replace(/[^0-9.]/g, ''));
-    const price = parseFloat(lote.precio.replace(/[^0-9.]/g, ''));
     const estadoMatch = !statusFilter || lote.estado.toLowerCase() === statusFilter.toLowerCase();
-    return area >= areaMin && area <= areaMax && price >= priceMin && price <= priceMax && estadoMatch;
+    return area >= areaMin && area <= areaMax && estadoMatch;
   });
   
   // Ordenar los lotes
   filteredLotes.sort((a, b) => {
     const areaA = parseFloat(a.area.replace(/[^0-9.]/g, ''));
     const areaB = parseFloat(b.area.replace(/[^0-9.]/g, ''));
-    const priceA = parseFloat(a.precio.replace(/[^0-9.]/g, ''));
-    const priceB = parseFloat(b.precio.replace(/[^0-9.]/g, ''));
     
     switch (sortBy) {
       case 'area-asc': return areaA - areaB;
       case 'area-desc': return areaB - areaA;
-      case 'price-asc': return priceA - priceB;
-      case 'price-desc': return priceB - priceA;
       default: return 0;
     }
   });
@@ -558,7 +529,6 @@ function filterAndRenderLotes() {
       <div class="card-info-grid">
         <div><span class="label">Estado</span><span class="value status-${estadoClass}">${lote.estado}</span></div>
         <div><span class="label">Área</span><span class="value">${lote.area}</span></div>
-        <div><span class="label">Precio</span><span class="value">${lote.precio}</span></div>
       </div>
       <button class="ver-mas-btn" onclick="verDetalleLote('${lote.id}')">Ver más</button>
     `;
@@ -683,9 +653,6 @@ function updatePanelInfo(lote) {
   document.getElementById('lote-id').textContent = `Mz. ${lote.manzana} - Lote ${lote.loteNumero}`;
   document.getElementById('lote-estado').textContent = lote.estado || '-';
   document.getElementById('lote-estado').className = `status-tag status-${lote.estado.toLowerCase().replace(/[^a-z]/g, '')}`;
-  
-  // Precios
-  document.getElementById('lote-precio-contado').textContent = lote.precio || '-';
   
   // Información adicional
   document.getElementById('lote-tipo').textContent = lote.tipo || 'Residencial';
@@ -895,19 +862,19 @@ window.openWhatsApp = function(source) {
 
 // Mapeo de IDs de amenidades a nombres de archivos de imagen
 const amenidadImageMap = {
-  'club-house': 'Club House Casa Bonita Residencial Casa Bonita Grau Piura.png',
-  'clinica-casa-bonita': 'Clinica_Casa Bonita Residencial Casa Bonita Grau Piura.png',
-  'iglesia': 'iglesia.png',
-  'instituto': 'Instituto en la colina_Casa Bonita Residencial Casa Bonita Grau Piura.png',
-  'ciclovia-abajo-derecha': 'Ciclovía entre Árboles y Viviendas_Casa Bonita Residencial Casa Bonita Grau Piura.png',
-  'gimnasio-etapa2': 'GYMNASIO_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
-  'parque-sostenible-etapa2': 'PARQUE SOSTENIBLE_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
-  'parque-amarillo-meditacion': 'Parque Amarillo Meditacion Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
-  'parque-animales': 'PARQUE ANIMALES_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
-  'parque-cultural': 'PARQUE CULTURAL_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
-  'parque-running': 'PARQUE F2 RUNNING_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
-  'parque-general': 'PARQUE GENERAL_Casa Bonita Residencial Casa Bonita Grau Piura.PNG',
-  'parque-infantil': 'PARQUE INFANTIL_Casa Bonita Residencial Casa Bonita Grau Piura.PNG'
+  'club-house': 'Club House Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'clinica-casa-bonita': 'Clinica_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'iglesia': 'iglesia.webp',
+  'instituto': 'Instituto en la colina_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'ciclovia-abajo-derecha': 'Ciclovía entre Árboles y Viviendas_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'gimnasio-etapa2': 'GYMNASIO_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'parque-sostenible-etapa2': 'PARQUE SOSTENIBLE_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'parque-amarillo-meditacion': 'Parque Amarillo Meditacion Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'parque-animales': 'PARQUE ANIMALES_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'parque-cultural': 'PARQUE CULTURAL_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'parque-running': 'PARQUE F2 RUNNING_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'parque-general': 'PARQUE GENERAL_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
+  'parque-infantil': 'PARQUE INFANTIL_Casa Bonita Residencial Casa Bonita Grau Piura.webp'
 };
 
 function openImageModal(amenidadId, amenidadNombre) {
