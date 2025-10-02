@@ -131,7 +131,9 @@ function simplify(points, tolerance) {
 function cargarLotes(archivo) {
   fetch(archivo)
     .then(res => res.json())
-    .then(lotes => {
+    .then(lotes => 
+    {
+
       const batchSize = 50;
       let currentBatch = 0;
       
@@ -175,22 +177,35 @@ function cargarLotes(archivo) {
             clickHandler = function(e) {
               if (polygonsInteractiveDisabled) return;
               try {
-                // Buscar el lote en todosLosLotes para mostrar información completa
-                const loteCompleto = todosLosLotes.find(l => l.id === lote.id);
-                if (loteCompleto) {
-                  // Guardar qué panel estaba activo antes de abrir el panel de información
-                  if (searchPanel.classList.contains('visible')) {
-                    previousPanel = 'search';
-                  } else if (areasPanel.classList.contains('visible')) {
-                    previousPanel = 'areas';
-                  } else {
-                    previousPanel = null;
-                  }
-                  
-                  hideAllPanels();
-                  updatePanelInfo(loteCompleto);
-                  sidePanel.classList.add('visible');
+                // Usar la información del lote directamente desde el polígono
+                // para evitar conflictos con lotes del mismo número en diferentes etapas
+                const infoLote = parsearLoteId(lote.id, archivo);
+                const loteCompleto = {
+                  ...lote,
+                  manzana: infoLote.manzana,
+                  loteNumero: infoLote.lote,
+                  tipo: 'Residencial',
+                  dimensiones: {
+                    izquierda: '8.00 ML',
+                    derecha: '8.00 ML', 
+                    frente: '15.00 ML',
+                    fondo: '15.00 ML'
+                  },
+                  whatsappLink: `https://wa.me/51946552086?text=Hola,%20estoy%20interesado%20en%20el%20lote%20${lote.id.replace('Lote ', '')}`
+                };
+                
+                // Guardar qué panel estaba activo antes de abrir el panel de información
+                if (searchPanel.classList.contains('visible')) {
+                  previousPanel = 'search';
+                } else if (areasPanel.classList.contains('visible')) {
+                  previousPanel = 'areas';
+                } else {
+                  previousPanel = null;
                 }
+                
+                hideAllPanels();
+                updatePanelInfo(loteCompleto);
+                sidePanel.classList.add('visible');
                 
                 if (!touchHighlighted) {
                   this.setStyle({ fillOpacity: Math.max(0.55, originalStyle.fillOpacity), weight: 2 });
@@ -204,7 +219,7 @@ function cargarLotes(archivo) {
             };
           }
           
-          const simplifiedCoords = simplify(lote.coords, 0.5);
+          const simplifiedCoords = simplify(lote.coords, 2.0); // Menos detalle = más rápido
           const poly = L.polygon(simplifiedCoords, {
             renderer: canvasRenderer,
             className: isAmenidades ? 'hover-amenidad' : 'hover-lote',
@@ -254,7 +269,8 @@ function cargarLotes(archivo) {
             popupContent, 
             popupBound: false, 
             originalStyle,
-            isAmenidad: isAmenidades  // Marcar si es amenidad para evitar popups
+            isAmenidad: isAmenidades,  // Marcar si es amenidad para evitar popups
+            archivo: archivo  // Añadir información del archivo para distinguir etapas
           });
         }
         currentBatch++;
@@ -491,10 +507,10 @@ function filterAndRenderLotes() {
   const resultsContainer = document.querySelector('#search-panel .panel-content');
   resultsContainer.querySelectorAll('.lote-result-card').forEach(card => card.remove());
   
-  // Primero filtrar por texto de búsqueda
+  // Filtrar por texto de búsqueda (ya incluye filtro por etapa)
   let filteredLotes = buscarLotesPorTexto(searchText);
   
-  // Luego aplicar filtros de área y estado
+  // Aplicar filtros de área y estado
   filteredLotes = filteredLotes.filter(lote => {
     const area = parseFloat(lote.area.replace(/[^0-9.]/g, ''));
     const estadoMatch = !statusFilter || lote.estado.toLowerCase() === statusFilter.toLowerCase();
@@ -578,21 +594,45 @@ window.verDetalleLote = verDetalleLote;
 
 // Función para buscar lotes por texto (ID, manzana, etc.)
 function buscarLotesPorTexto(texto) {
-  if (!texto || texto.trim() === '') return todosLosLotes;
+  if (!texto || texto.trim() === '') {
+    // Si no hay texto, devolver todos los lotes filtrados por etapa actual
+    return todosLosLotes.filter(lote => {
+      if (currentSector === 'etapa-1') {
+        return !lote.manzana.includes('2');
+      } else if (currentSector === 'etapa-2') {
+        return lote.manzana.includes('2');
+      }
+      return true; // Para 'completo' mostrar todos
+    });
+  }
 
   const q = String(texto).toLowerCase().replace(/\blote\b/g, '').replace(/[^a-z0-9\s]/g, ' ').trim();
   const parts = q.split(/\s+/).filter(Boolean);
   const num = parts.find(p => /^\d+$/.test(p));
-  const man = (parts.find(p => /[a-z]/.test(p)) || '').replace(/\d+$/, '');
-
+  
+  // Mejorar la detección de manzana para incluir números (D2, E2, etc.)
+  const manPart = parts.find(p => /[a-z]/.test(p)) || '';
+  
   return todosLosLotes.filter(l => {
     if (!l) return false;
+    
+    // Filtrar por etapa actual primero
+    if (currentSector === 'etapa-1' && l.manzana.includes('2')) return false;
+    if (currentSector === 'etapa-2' && !l.manzana.includes('2')) return false;
+    
     const id = (l.id||'').toString().toLowerCase();
-    const m = (l.manzana||'').toString().toLowerCase().replace(/\d+$/, '');
+    const m = (l.manzana||'').toString().toLowerCase();
     const n = (l.loteNumero||'').toString().toLowerCase();
 
-    if (man && num) return m === man && n === num;
+    // Búsqueda exacta por manzana y número
+    if (manPart && num) {
+      return m === manPart && n === num;
+    }
+    
+    // Búsqueda solo por número
     if (num && parts.length === 1) return n.includes(num);
+    
+    // Búsqueda general
     const qfull = q;
     return id.includes(qfull) || m.includes(qfull) || n.includes(qfull) || (m+n).includes(qfull);
   });
@@ -600,7 +640,23 @@ function buscarLotesPorTexto(texto) {
 
 // Función para mostrar detalles de un lote específico
 function verDetalleLote(loteId) {
-  const lote = todosLosLotes.find(l => l.id === loteId);
+  // Buscar el lote respetando la etapa actual
+  let lote;
+  
+  if (currentSector === 'etapa-1') {
+    // En etapa 1, buscar solo lotes que NO tengan manzanas con '2'
+    lote = todosLosLotes.find(l => l.id === loteId && !l.manzana.includes('2'));
+  } else if (currentSector === 'etapa-2') {
+    // En etapa 2, buscar solo lotes que SÍ tengan manzanas con '2'
+    lote = todosLosLotes.find(l => l.id === loteId && l.manzana.includes('2'));
+  } else {
+    // En vista completa, dar prioridad a etapa 2 si hay duplicados
+    lote = todosLosLotes.find(l => l.id === loteId && (l.manzana.includes('2')));
+    if (!lote) {
+      lote = todosLosLotes.find(l => l.id === loteId);
+    }
+  }
+  
   if (lote) {
     // Guardar qué panel estaba activo antes de abrir el panel de información
     if (searchPanel.classList.contains('visible')) {
@@ -617,7 +673,24 @@ function verDetalleLote(loteId) {
     sidePanel.classList.add('visible');
     
     // Buscar y resaltar el polígono correspondiente en el mapa
-    const poligonoObj = polygons.find(p => p.loteData && p.loteData.id === loteId);
+    // Buscar polígono respetando la etapa actual
+    let poligonoObj;
+    
+    if (currentSector === 'etapa-1') {
+      // En etapa 1, buscar solo polígonos que NO sean de archivos con '2.json'
+      poligonoObj = polygons.find(p => p.loteData && p.loteData.id === loteId && !p.archivo.includes('2.json'));
+    } else if (currentSector === 'etapa-2') {
+      // En etapa 2, buscar solo polígonos de archivos con '2.json'
+      poligonoObj = polygons.find(p => p.loteData && p.loteData.id === loteId && p.archivo.includes('2.json'));
+    } else {
+      // En vista completa, priorizar etapa 2 si hay duplicados
+      if (lote.manzana && lote.manzana.includes('2')) {
+        poligonoObj = polygons.find(p => p.loteData && p.loteData.id === loteId && p.archivo.includes('2.json'));
+      }
+      if (!poligonoObj) {
+        poligonoObj = polygons.find(p => p.loteData && p.loteData.id === loteId);
+      }
+    }
     if (poligonoObj && poligonoObj.poly) {
       try {
         // Centrar el mapa en el lote
@@ -757,6 +830,9 @@ document.addEventListener('DOMContentLoaded', function() {
       else imageName = 'ETAPA GENERAL.webp';
       setOverlay(imageName, dims);
       sectores[selectedSector].files.forEach(file => { cargarLotes(file); });
+      
+      // Actualizar resultados de búsqueda cuando se cambie de etapa
+      filterAndRenderLotes();
     } else if (selectedSector === '') {
       map.fitBounds(bounds);
     }
@@ -924,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Cerrar modal con tecla Escape
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && modal.classList.contains('show')) {
+    if (e.key === 'Escape' && modal.classList.contains('show')) {   
       closeImageModal();
     }
   });

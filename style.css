@@ -39,36 +39,13 @@ body {
   min-height: 100vh;
 }
 
-.page-content {
-  margin-top: 120px; /* Ajustado para la nueva estructura del header */
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
 
 @media (max-width: 768px) {
-  .page-content {
-    margin-top: 100px; /* Reducido para tablets */
-  }
   .map-wrapper {
     height: 65vh; /* Aumentado para mejor visualización */
     min-height: 450px; /* Altura mínima mejorada */
   }
 }
-
-/* Ajustes adicionales para dispositivos muy pequeños */
-@media (max-width: 480px) {
-  .page-content {
-    margin-top: 90px; /* Optimizado para móviles pequeños */
-  }
-}
-
-@media (max-width: 360px) {
-  .page-content {
-    margin-top: 85px; /* Optimizado para pantallas muy pequeñas */
-  }
-}
-
 .footer {
   margin-top: auto;
   z-index: 10 !important;
@@ -107,15 +84,13 @@ svg.leaflet-zoom-animated {
 
 /* Optimizaciones de rendimiento para el contenedor del mapa */
 #map {
-  transform: translateZ(0); /* Hardware acceleration */
-  will-change: transform;
-  backface-visibility: hidden;
+  /* Mantener la aceleración en el contenedor principal del mapa */
+  transform: translateZ(0);
+ 
 }
 
-/* Optimizar rendering de elementos SVG */
 .leaflet-overlay-pane svg {
   transform: translateZ(0);
-  will-change: transform;
 }
 
 /* Reset scroll y estructura de la página (ya cubierto en parte por el reset global) */
@@ -415,12 +390,9 @@ section.project-header {
 
 .hover-lote {
   stroke-width: 1;
-  transition: fill-opacity 0.1s ease, filter 0.1s ease;
+  transition: fill-opacity 0.12s ease, filter 0.12s ease;
   cursor: pointer;
-  /* Optimizaciones de rendimiento */
-  will-change: fill-opacity, filter;
-  transform: translateZ(0); /* Forzar hardware acceleration */
-  backface-visibility: hidden;
+
 }
 
 .hover-lote:hover {
@@ -1403,4 +1375,17 @@ section.project-header {
     top: 10px;
     right: 10px;
   }
+}
+
+/* === UTILIDADES DE ACCESIBILIDAD === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
