@@ -940,7 +940,7 @@ window.openWhatsApp = function(source) {
 const amenidadImageMap = {
   'club-house': 'Club House Casa Bonita Residencial Casa Bonita Grau Piura.webp',
   'clinica-casa-bonita': 'Clinica_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
-  'iglesia': 'iglesia.webp',
+  'iglesia': 'Iglesia.webp',
   'instituto': 'Instituto en la colina_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
   'ciclovia-abajo-derecha': 'Ciclovía entre Árboles y Viviendas_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
   'gimnasio-etapa2': 'GYMNASIO_Casa Bonita Residencial Casa Bonita Grau Piura.webp',
