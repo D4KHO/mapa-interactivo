@@ -1,6 +1,383 @@
 // script-mapa.js
 // Todos los scripts extraídos desde index.html para mantener el HTML limpio.
 
+// API Configuration
+const API_CONFIG = {
+  // Cambiar por tu dominio de producción
+  baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3002/api/units/stock' // Desarrollo local
+    : 'https://proxy.casabonita.pe/api/units/stock', // CAMBIAR por tu URL de producción
+  
+  authUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3002/auth/external/token' // Desarrollo local
+    : 'https://proxy.casabonita.pe/auth/external/token', // CAMBIAR por tu URL de producción
+  
+  projectCode: 'CASABONITA',
+  stageIds: [1, 2],
+  token: '' // Se obtiene del proxy automáticamente
+  // ✅ SEGURIDAD: apiKey y subdomain eliminados del frontend
+};
+
+// Dimensiones por defecto para lotes (fallback cuando la API no las proporciona)
+const DIMENSIONES_DEFAULT = {
+  izquierda: '6.00 M',
+  derecha: '6.00 M',
+  frente: '11.00 M',
+  fondo: '11.00 M'
+};
+
+// Función para obtener token inicial al cargar la página
+async function initializeToken() {
+  if (!API_CONFIG.token) {
+    try {
+      await renewToken();
+      console.log('✅ Token inicial obtenido');
+    } catch (error) {
+      console.warn('⚠️ No se pudo obtener token inicial, se obtendrá cuando sea necesario');
+    }
+  }
+}
+
+// Función para renovar token a través del proxy (SIN CREDENCIALES EN FRONTEND)
+async function renewToken() {
+  try {
+    console.log('🔄 Renovando token...');
+    
+    const response = await fetch(API_CONFIG.authUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.succeeded && data.data && data.data.accessToken) {
+        API_CONFIG.token = data.data.accessToken;
+        console.log('✅ Token renovado exitosamente');
+        return data.data.accessToken;
+      }
+    }
+    
+    throw new Error(`Error renovando token: ${response.status}`);
+  } catch (error) {
+    console.error('❌ Error renovando token:', error);
+    throw error;
+  }
+}
+
+// Variables globales para API
+let unitsData = {};
+
+// Función para obtener datos de unidades desde la API real
+
+async function getUnitsData() {
+  try {
+    // Limpiar datos anteriores
+    unitsData = {};
+    
+    // Hacer llamadas para todas las etapas disponibles
+    for (const stageId of API_CONFIG.stageIds) {
+      // Construir URL del endpoint
+      const apiUrl = `${API_CONFIG.baseUrl}?projectCode=${API_CONFIG.projectCode}&stageId=${stageId}`;
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        // Si es error 401 (token expirado), renovar automáticamente
+        if (response.status === 401) {
+          console.log('🔑 Token expirado, renovando automáticamente...');
+          try {
+            await renewToken();
+            
+            // Reintentar la llamada (el proxy maneja el token automáticamente)
+            const retryResponse = await fetch(apiUrl, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              }
+            });
+            
+            if (retryResponse.ok) {
+              const apiResponse = await retryResponse.json();
+              // Procesar los datos normalmente
+              if (apiResponse && apiResponse.succeeded && apiResponse.data && apiResponse.data.properties) {
+                apiResponse.data.properties.forEach(unit => {
+                  if (unit.code && unit.status !== undefined && unit.areaSqm !== undefined) {
+                    unitsData[unit.code] = {
+                      estado: unit.status,
+                      area: unit.areaSqm,
+                      unitCode: unit.code,
+                      stageId: stageId,
+                      stageName: unit.stageName,
+                      blockName: unit.blockName,
+                      // Agregar dimensiones desde la API
+                      dimensions: unit.dimensions ? {
+                        front: unit.dimensions.front,
+                        right: unit.dimensions.right,
+                        left: unit.dimensions.left,
+                        back: unit.dimensions.back
+                      } : null,
+                      lastUpdated: new Date().toISOString()
+                    };
+                  }
+                });
+              }
+              continue; // Continuar con la siguiente etapa
+            }
+          } catch (renewError) {
+            console.error('❌ Error renovando token:', renewError);
+          }
+        }
+        
+        if (response.status === 0 || !response.status) {
+          throw new Error(`Error de conexión: No se puede conectar al proxy local en puerto 3002. ¿Está ejecutándose el servidor proxy?`);
+        }
+        throw new Error(`Error de API: ${response.status} ${response.statusText}`);
+      }
+      
+      const apiResponse = await response.json();
+      
+      // Procesar los datos de la API
+      if (apiResponse && apiResponse.succeeded && apiResponse.data && apiResponse.data.properties) {
+        apiResponse.data.properties.forEach(unit => {
+          // Adaptar los datos de la API al formato esperado
+          if (unit.code && unit.status !== undefined && unit.areaSqm !== undefined) {
+            unitsData[unit.code] = {
+              estado: unit.status, // "Bloqueado", "Disponible", "Vendido", "Reservado"
+              area: unit.areaSqm,
+              unitCode: unit.code,
+              stageId: stageId,
+              stageName: unit.stageName,
+              blockName: unit.blockName,
+              // Agregar dimensiones desde la API
+              dimensions: unit.dimensions ? {
+                front: unit.dimensions.front,
+                right: unit.dimensions.right,
+                left: unit.dimensions.left,
+                back: unit.dimensions.back
+              } : null,
+              lastUpdated: new Date().toISOString()
+            };
+          }
+        });
+      }
+    }
+    
+    return unitsData;
+  } catch (error) {
+    console.error('Error conectando con API:', error);
+    
+    // Mostrar mensaje específico si es problema de proxy
+    if (error.message.includes('proxy local')) {
+      console.error('🔧 SOLUCIÓN: Ejecuta "start-proxy.bat" en otra ventana de terminal');
+      console.error('🔧 O ejecuta: node proxy.js');
+    }
+    
+    // Fallback: usar datos originales de JSON si falla la API
+    return {};
+  }
+}
+
+// Función para obtener información de un lote específico (solo estado y área)
+function getLotInfo(lotCode) {
+  const unit = unitsData[lotCode];
+  if (!unit) {
+    return null;
+  }
+  
+  return {
+    status: unit.estado || 'N/A',
+    area: unit.area || 0,
+    dimensions: unit.dimensions || null
+  };
+}
+
+// Función para determinar el color según el estado
+function getStatusColor(status) {
+  switch (status?.toLowerCase()) {
+    case 'disponible':
+      return { fillColor: '#ffffff', color: '#111827' }; // Blanco con borde oscuro (--available-bg)
+    case 'reservado':
+      return { fillColor: '#f97316', color: '#ea580c' }; // Naranja (--reserved-bg)
+    case 'vendido':
+      return { fillColor: '#16a34a', color: '#15803d' }; // Verde (--sold-bg)
+    case 'bloqueado':
+      return { fillColor: '#dc2626', color: '#b91c1c' }; // Rojo (--blocked-bg)
+    default:
+      return { fillColor: '#007bff', color: '#0056b3' }; // Azul por defecto
+  }
+}
+
+// Inicializar API al cargar la página
+async function initializeAPI() {
+  
+  // Mostrar indicador de carga (opcional)
+  const loadingIndicator = document.createElement('div');
+  loadingIndicator.id = 'api-loading';
+  loadingIndicator.innerHTML = `
+    <div style="position: fixed; top: 20px; right: 20px; background: #007bff; color: white; padding: 10px 15px; border-radius: 5px; z-index: 1000; font-size: 14px;">
+      <span>🔄 Conectando con API...</span>
+    </div>
+  `;
+  document.body.appendChild(loadingIndicator);
+  
+  try {
+    // Obtener token inicial si no existe
+    await initializeToken();
+    
+    await getUnitsData();
+    
+    // Esperar un poco para que los polígonos se carguen
+    setTimeout(() => {
+      updateExistingPolygons();
+    }, 2000); // Esperar 2 segundos
+    
+    // Mostrar mensaje de éxito
+    loadingIndicator.innerHTML = `
+      <div style="position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 10px 15px; border-radius: 5px; z-index: 1000; font-size: 14px;">
+        <span>✅ API conectada (${Object.keys(unitsData).length} lotes)</span>
+      </div>
+    `;
+    
+    // Ocultar indicador después de 3 segundos
+    setTimeout(() => {
+      if (loadingIndicator.parentNode) {
+        loadingIndicator.remove();
+      }
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error inicializando modo offline:', error);
+    
+    // Mostrar mensaje de error
+    loadingIndicator.innerHTML = `
+      <div style="position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 10px 15px; border-radius: 5px; z-index: 1000; font-size: 14px;">
+        <span>⚠️ Error - usando datos locales únicamente</span>
+      </div>
+    `;
+    
+    // Ocultar indicador después de 5 segundos
+    setTimeout(() => {
+      if (loadingIndicator.parentNode) {
+        loadingIndicator.remove();
+      }
+    }, 5000);
+  }
+}
+
+// Función para actualizar polígonos existentes con información de API
+function updateExistingPolygons() {
+  let updatedCount = 0;
+  
+  polygons.forEach((polygonObj, index) => {
+    // Solo actualizar lotes, no amenidades
+    if (polygonObj.isAmenidad) return;
+    
+    const lote = polygonObj.loteData;
+    if (!lote || !lote.id) {
+      return;
+    }
+    
+    // Solo buscar en API si hay datos disponibles
+    if (Object.keys(unitsData).length > 0) {
+      const lotInfo = getLotInfo(lote.id);
+      
+      if (lotInfo) {
+        updatedCount++;
+        
+        // Actualizar colores del polígono según el estado de la API
+        const colors = getStatusColor(lotInfo.status);
+        polygonObj.poly.setStyle({
+          fillColor: colors.fillColor,
+          color: colors.color
+        });
+        
+        // IMPORTANTE: Actualizar directamente los datos del lote en el polígono
+        // Sobrescribir los valores de estado y área que vienen del JSON
+        polygonObj.loteData.estado = lotInfo.status;  // Usar campo normalizado
+        polygonObj.loteData.area = `${lotInfo.area} m²`;  // Usar campo normalizado
+        
+        // Actualizar popup content con información de API (solo estado y área)
+        polygonObj.popupContent = `
+          <div style="font-family: Arial, sans-serif; min-width: 200px;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">${lote.id}</h3>
+            <div style="margin-bottom: 8px;"><strong>Área:</strong> ${lotInfo.area} m²</div>
+            <div style="margin-bottom: 8px;"><strong>Estado:</strong> 
+              <span style="color: ${colors.color}; font-weight: bold;">${lotInfo.status}</span>
+            </div>
+          </div>
+        `;
+        
+        // Re-bind popup si ya estaba vinculado
+        if (polygonObj.popupBound) {
+          polygonObj.poly.bindPopup(polygonObj.popupContent);
+        }
+      }
+    }
+  });
+  
+  // Solo actualizar todosLosLotes si hay datos de API
+  if (Object.keys(unitsData).length > 0) {
+    // Paso 1: Actualizar lotes existentes en todosLosLotes
+    let updatedExisting = 0;
+    todosLosLotes.forEach(lote => {
+      const lotInfo = getLotInfo(lote.id);
+      if (lotInfo) {
+        lote.estado = lotInfo.status;  // Usar campo normalizado
+        lote.area = `${lotInfo.area} m²`;  // Usar campo normalizado
+        updatedExisting++;
+      }
+    });
+    
+    // Paso 2: Agregar lotes de API que NO están en todosLosLotes
+    const existingIds = new Set(todosLosLotes.map(lote => lote.id));
+    let addedNew = 0;
+    
+    Object.keys(unitsData).forEach(lotId => {
+      if (!existingIds.has(lotId)) {
+        const apiData = unitsData[lotId];
+        
+        // Parsear información del ID del lote
+        const lotInfo = parsearLoteId(lotId);
+        
+        // Crear nuevo lote con estructura consistente
+        const nuevoLote = {
+          id: lotId,
+          nombre: `Lote ${lotId}`,
+          coordinates: [], // Sin coordenadas para polígono (solo para búsqueda)
+          estado: apiData.status || 'Disponible',
+          area: `${apiData.area || 100} m²`,
+          manzana: lotInfo.manzana,
+          loteNumero: lotInfo.lote,
+          tipo: 'Residencial',
+          dimensiones: DIMENSIONES_DEFAULT,
+          whatsappLink: `https://wa.me/51946552086?text=Hola,%20estoy%20interesado%20en%20el%20lote%20${lotId.replace('Lote ', '')}`
+        };
+        
+        todosLosLotes.push(nuevoLote);
+        addedNew++;
+      }
+    });
+    
+    // Actualizar rangos de filtros después de integrar datos de API
+    actualizarRangosFiltros();
+  }
+  
+  // Re-renderizar los filtros para mostrar los datos actualizados
+  if (typeof filterAndRenderLotes === 'function') {
+    filterAndRenderLotes();
+  }
+}
+
 // Precarga de imágenes para evitar demoras en el renderizado
 const imageCache = {};
 const preloadImages = ['ETAPA GENERAL.webp', 'ETAPA 1 img.webp', 'ETAPA 2 img.webp'];
@@ -48,7 +425,7 @@ const overlayCache = {};
 let currentOverlay = null;
 function setOverlay(imageSrc, dims) {
   if (currentOverlay) {
-    try { map.removeLayer(currentOverlay); } catch (e) { console.warn('No se pudo eliminar overlay previo', e); }
+    try { map.removeLayer(currentOverlay); } catch (e) { }
     currentOverlay = null;
   }
   if (imageSrc) {
@@ -84,7 +461,6 @@ if (imageCache['ETAPA GENERAL.webp']) {
 }
 
 const polygons = [];
-let activo = 0;
 const canvasRenderer = L.canvas({ padding: 0.5 });
 
 function getSqDist(p1, p2) {
@@ -151,8 +527,8 @@ function cargarLotes(archivo) {
           if (isAmenidades) {
             // Configuración para amenidades
             colors = {
-              fill: "#f3eac6d2", // Verde claro para amenidades
-              stroke: "#d7d7d775"
+              fillColor: "#f3eac6d2", // Verde claro para amenidades
+              color: "#d7d7d775"
             };
             popupContent = `<b>${lote.nombre}</b><br>Tipo: ${lote.tipo}<br>Click para ver imagen`;
             
@@ -162,15 +538,43 @@ function cargarLotes(archivo) {
               openImageModal(lote.id, lote.nombre);
             };
           } else {
-            // Configuración para lotes normales
-            const colorMap = {
-              "Disponible": { fill: "#ffffff", stroke: "#111827" },
-              "Reservado": { fill: "#f97316", stroke: "#ea580c" },
-              "Vendido": { fill: "#16a34a", stroke: "#15803d" },
-              "Bloqueado": { fill: "#dc2626", stroke: "#b91c1c" }
-            };
-            colors = colorMap[lote.estado] || colorMap["Bloqueado"];
-            popupContent = `<b>${lote.id}</b><br>Área: ${lote.area}<br><br>Estado: ${lote.estado}`;
+            // Configuración para lotes normales - Integrar con API (solo estado y área)
+            const lotInfo = getLotInfo(lote.id);
+            let status, area;
+            
+            if (lotInfo) {
+              // Usar información de la API (solo estado y área)
+              status = lotInfo.status;
+              area = `${lotInfo.area} m²`;
+              colors = getStatusColor(lotInfo.status);
+            } else {
+              // Fallback a datos locales si no hay información de API
+              const colorMap = {
+                "Disponible": { fillColor: "#ffffff", color: "#111827" },
+                "Reservado": { fillColor: "#f97316", color: "#ea580c" },
+                "Vendido": { fillColor: "#16a34a", color: "#15803d" },
+                "Bloqueado": { fillColor: "#dc2626", color: "#b91c1c" }
+              };
+              // Usar los campos normalizados
+              status = lote.estado || 'Disponible'; 
+              area = lote.area || '100 m²'; 
+              colors = colorMap[lote.estado] || colorMap["Disponible"]; 
+            }
+            
+            // Asegurar que colors nunca sea undefined
+            if (!colors) {
+              colors = { fillColor: "#ffffff", color: "#111827" }; // Colores por defecto
+            }
+            
+            popupContent = `
+              <div style="font-family: Arial, sans-serif; min-width: 200px;">
+                <h3 style="margin: 0 0 10px 0; color: #333;">${lote.id}</h3>
+                <div style="margin-bottom: 8px;"><strong>Área:</strong> ${area}</div>
+                <div style="margin-bottom: 8px;"><strong>Estado:</strong> 
+                  <span style="color: ${colors.color}; font-weight: bold;">${status}</span>
+                </div>
+              </div>
+            `;
             
             // Función de click para lotes normales (destacar y mostrar info)
             let touchHighlighted = false;
@@ -182,15 +586,12 @@ function cargarLotes(archivo) {
                 const infoLote = parsearLoteId(lote.id, archivo);
                 const loteCompleto = {
                   ...lote,
+                  // Solo actualizar estado y área si hay información de API
+                  ...(lotInfo ? { estado: lotInfo.status, area: `${lotInfo.area} m²` } : {}),
                   manzana: infoLote.manzana,
                   loteNumero: infoLote.lote,
                   tipo: 'Residencial',
-                  dimensiones: {
-                    izquierda: '8.00 ML',
-                    derecha: '8.00 ML', 
-                    frente: '15.00 ML',
-                    fondo: '15.00 ML'
-                  },
+                  dimensiones: DIMENSIONES_DEFAULT,
                   whatsappLink: `https://wa.me/51946552086?text=Hola,%20estoy%20interesado%20en%20el%20lote%20${lote.id.replace('Lote ', '')}`
                 };
                 
@@ -214,17 +615,22 @@ function cargarLotes(archivo) {
                 }
                 touchHighlighted = !touchHighlighted;
               } catch (err) {
-                console.warn('Error al procesar click en lote:', err);
+                // Error silencioso en click de lote
               }
             };
+          }
+          
+          // Verificación final de seguridad para colors
+          if (!colors || typeof colors !== 'object') {
+            colors = { fillColor: "#ffffff", color: "#111827" };
           }
           
           const simplifiedCoords = simplify(lote.coords, 2.0); // Menos detalle = más rápido
           const poly = L.polygon(simplifiedCoords, {
             renderer: canvasRenderer,
             className: isAmenidades ? 'hover-amenidad' : 'hover-lote',
-            fillColor: colors.fill,
-            color: colors.stroke,
+            fillColor: colors.fillColor || colors.fill,
+            color: colors.color || colors.stroke,
             weight: isAmenidades ? 2 : 1,
             opacity: 0.8,
             fillOpacity: isAmenidades ? 0.6 : 0.4,
@@ -280,39 +686,38 @@ function cargarLotes(archivo) {
     });
 }
 
-function getActivo() { return polygons[activo]; }
-
 // Variable global para almacenar todos los lotes cargados
 let todosLosLotes = [];
 
 // Función para extraer información de la manzana y lote del ID
 function parsearLoteId(id, archivo = '') {
-  // Formato esperado: "Lote A1", "Lote B2", etc.
-  const match = id.match(/Lote ([A-Z]+)(\d+)/);
+  // Formato real: "A1-01", "B2-15", etc.
+  const match = id.match(/([A-Z]+)(\d*)-(\d+)/);
   if (match) {
-    let manzana = match[1];
+    let manzana = match[1] + (match[2] || ''); // Ej: "A1", "B2", "D2"
     
-    // Si es manzana D y viene del archivo de etapa 2, agregar "2"
-    if (manzana === 'D' && archivo.includes('D2.json')) {
-      manzana = 'D2';
-    }
-    // Similar para otras manzanas de etapa 2
-    else if (manzana === 'E' && archivo.includes('E2.json')) {
-      manzana = 'E2';
-    }
-    else if (manzana === 'F' && archivo.includes('F2.json')) {
-      manzana = 'F2';
-    }
-    else if (manzana === 'G' && archivo.includes('G2.json')) {
-      manzana = 'G2';
+    // Determinar si es etapa 2 basado en el archivo o el nombre de la manzana
+    if (archivo.includes('2.json') || ['D2', 'E2', 'F2', 'G2'].includes(manzana)) {
+      // Ya tiene el formato correcto para etapa 2
     }
     
     return {
       manzana: manzana,
-      lote: match[2],
+      lote: match[3], // El número después del guión
       id: id
     };
   }
+  
+  // Fallback para formato anterior o casos especiales
+  const oldMatch = id.match(/Lote ([A-Z]+)(\d+)/);
+  if (oldMatch) {
+    return {
+      manzana: oldMatch[1],
+      lote: oldMatch[2],
+      id: id
+    };
+  }
+  
   return {
     manzana: '',
     lote: '',
@@ -356,15 +761,13 @@ function cargarTodosLosLotes() {
         const infoLote = parsearLoteId(lote.id, archivo); // Pasar el archivo
         const loteCompleto = {
           ...lote,
+          // NORMALIZAR campos a formato estándar
+          estado: lote.estado || 'Disponible',
+          area: lote.area || '100 m²',
           manzana: infoLote.manzana,
           loteNumero: infoLote.lote,
           tipo: 'Residencial',
-          dimensiones: {
-            izquierda: '8.00 ML',
-            derecha: '8.00 ML', 
-            frente: '15.00 ML',
-            fondo: '15.00 ML'
-          },
+          dimensiones: DIMENSIONES_DEFAULT,
           whatsappLink: `https://wa.me/51946552086?text=Hola,%20estoy%20interesado%20en%20el%20lote%20${lote.id.replace('Lote ', '')}`
         };
         todosLosLotes.push(loteCompleto);
@@ -388,8 +791,19 @@ function cargarTodosLosLotes() {
 function actualizarRangosFiltros() {
   if (todosLosLotes.length === 0) return;
   
-  // Calcular rangos de área
-  const areas = todosLosLotes.map(lote => parseFloat(lote.area.replace(/[^0-9.]/g, ''))).filter(area => !isNaN(area));
+  // Calcular rangos de área (validar que sea número)
+  const areas = todosLosLotes.map(lote => {
+    let area = lote.area; // Solo usar campo normalizado
+    // Si es string, limpiar caracteres no numéricos
+    if (typeof area === 'string') {
+      area = parseFloat(area.replace(/[^0-9.]/g, ''));
+    }
+    // Si ya es número, usarlo directamente
+    return parseFloat(area);
+  }).filter(area => !isNaN(area) && area > 0);
+  
+  if (areas.length === 0) return; // Si no hay áreas válidas, salir
+  
   const areaMin = Math.floor(Math.min(...areas));
   const areaMax = Math.ceil(Math.max(...areas));
   
@@ -403,8 +817,13 @@ function actualizarRangosFiltros() {
     areaMaxSlider.min = areaMin;
     areaMaxSlider.max = areaMax;
     areaMaxSlider.value = areaMax;
+    
+    // Actualizar la etiqueta del rango
+    const areaRangeLabel = document.getElementById('area-range-label');
+    if (areaRangeLabel) {
+      areaRangeLabel.textContent = `${areaMin} m² - ${areaMax} m²`;
+    }
   }
-  
 }
 
 const areasComunes = [
@@ -512,15 +931,27 @@ function filterAndRenderLotes() {
   
   // Aplicar filtros de área y estado
   filteredLotes = filteredLotes.filter(lote => {
-    const area = parseFloat(lote.area.replace(/[^0-9.]/g, ''));
-    const estadoMatch = !statusFilter || lote.estado.toLowerCase() === statusFilter.toLowerCase();
+    // Verificar que el lote tenga los campos necesarios
+    if (!lote || !lote.id) return false;
+    
+    // Usar solo campos normalizados
+    const areaField = lote.area || '0 m²';
+    const area = parseFloat(areaField.replace(/[^0-9.]/g, ''));
+    
+    // Usar solo campos normalizados
+    const estadoField = lote.estado || '';
+    const estadoMatch = !statusFilter || estadoField.toLowerCase() === statusFilter.toLowerCase();
+    
     return area >= areaMin && area <= areaMax && estadoMatch;
   });
   
   // Ordenar los lotes
   filteredLotes.sort((a, b) => {
-    const areaA = parseFloat(a.area.replace(/[^0-9.]/g, ''));
-    const areaB = parseFloat(b.area.replace(/[^0-9.]/g, ''));
+    // Usar solo campos normalizados
+    const areaFieldA = a.area || '0 m²';
+    const areaFieldB = b.area || '0 m²';
+    const areaA = parseFloat(areaFieldA.replace(/[^0-9.]/g, ''));
+    const areaB = parseFloat(areaFieldB.replace(/[^0-9.]/g, ''));
     
     switch (sortBy) {
       case 'area-asc': return areaA - areaB;
@@ -537,14 +968,16 @@ function filterAndRenderLotes() {
     const card = document.createElement('div');
     card.className = 'lote-result-card';
     
-    // Obtener clase de color basada en estado
-    const estadoClass = lote.estado.toLowerCase().replace(/[^a-z]/g, '');
+    // Usar solo campos normalizados
+    const estado = lote.estado || 'N/A';
+    const area = lote.area || 'N/A';
+    const estadoClass = estado.toLowerCase().replace(/[^a-z]/g, '');
     
     card.innerHTML = `
       <h4>Mz. ${lote.manzana} - Lote ${lote.loteNumero}</h4>
       <div class="card-info-grid">
-        <div><span class="label">Estado</span><span class="value status-${estadoClass}">${lote.estado}</span></div>
-        <div><span class="label">Área</span><span class="value">${lote.area}</span></div>
+        <div><span class="label">Estado</span><span class="value status-${estadoClass}">${estado}</span></div>
+        <div><span class="label">Área</span><span class="value">${area}</span></div>
       </div>
       <button class="ver-mas-btn" onclick="verDetalleLote('${lote.id}')">Ver más</button>
     `;
@@ -598,19 +1031,23 @@ function buscarLotesPorTexto(texto) {
     // Si no hay texto, devolver todos los lotes filtrados por etapa actual
     return todosLosLotes.filter(lote => {
       if (currentSector === 'etapa-1') {
+        // Etapa 1: manzanas sin '2' en el nombre
         return !lote.manzana.includes('2');
       } else if (currentSector === 'etapa-2') {
+        // Etapa 2: manzanas con '2' en el nombre (D2, E2, F2, G2)
         return lote.manzana.includes('2');
       }
       return true; // Para 'completo' mostrar todos
     });
   }
 
-  const q = String(texto).toLowerCase().replace(/\blote\b/g, '').replace(/[^a-z0-9\s]/g, ' ').trim();
-  const parts = q.split(/\s+/).filter(Boolean);
-  const num = parts.find(p => /^\d+$/.test(p));
+  const q = String(texto).toLowerCase().replace(/\blote\b/g, '').replace(/[^a-z0-9\s-]/g, ' ').trim();
+  const parts = q.split(/[\s-]+/).filter(Boolean);
   
-  // Mejorar la detección de manzana para incluir números (D2, E2, etc.)
+  // Buscar números en la consulta
+  const nums = parts.filter(p => /^\d+$/.test(p));
+  
+  // Buscar letras (manzana) en la consulta
   const manPart = parts.find(p => /[a-z]/.test(p)) || '';
   
   return todosLosLotes.filter(l => {
@@ -624,17 +1061,28 @@ function buscarLotesPorTexto(texto) {
     const m = (l.manzana||'').toString().toLowerCase();
     const n = (l.loteNumero||'').toString().toLowerCase();
 
-    // Búsqueda exacta por manzana y número
-    if (manPart && num) {
-      return m === manPart && n === num;
+    // Búsqueda por ID completo
+    if (id.includes(q)) return true;
+    
+    // Búsqueda por manzana y número específico
+    if (manPart && nums.length > 0) {
+      const manzanaMatch = m.includes(manPart);
+      const numeroMatch = nums.some(num => n.includes(num) || m.includes(num));
+      return manzanaMatch && numeroMatch;
     }
     
     // Búsqueda solo por número
-    if (num && parts.length === 1) return n.includes(num);
+    if (nums.length > 0 && !manPart) {
+      return nums.some(num => n.includes(num));
+    }
+    
+    // Búsqueda solo por manzana
+    if (manPart && nums.length === 0) {
+      return m.includes(manPart);
+    }
     
     // Búsqueda general
-    const qfull = q;
-    return id.includes(qfull) || m.includes(qfull) || n.includes(qfull) || (m+n).includes(qfull);
+    return id.includes(q) || m.includes(q) || n.includes(q) || (m+n).includes(q.replace(/\s/g, ''));
   });
 }
 
@@ -713,7 +1161,7 @@ function verDetalleLote(loteId) {
         }, 3000);
         
       } catch (e) {
-        console.warn('No se pudo centrar o resaltar el lote en el mapa:', e);
+        // Error silencioso al centrar lote
       }
     }
   }
@@ -722,35 +1170,107 @@ function verDetalleLote(loteId) {
 function updatePanelInfo(lote) {
   if (!lote) return;
   
+  // PRIORIZAR datos de API sobre datos locales del JSON
+  let estado, area;
+  
+  // Buscar información actualizada de la API
+  const lotInfo = getLotInfo(lote.id);
+  
+  if (lotInfo && lotInfo.status && lotInfo.status !== 'N/A') {
+    // Usar datos de la API (más actualizados)
+    estado = lotInfo.status;
+    area = `${lotInfo.area} m²`;
+  } else {
+    // Fallback a datos locales del JSON (ya normalizados)
+    estado = lote.estado || 'N/A';
+    area = lote.area || 'N/A';
+  }
+  
   // Actualizar información básica
   document.getElementById('lote-id').textContent = `Mz. ${lote.manzana} - Lote ${lote.loteNumero}`;
-  document.getElementById('lote-estado').textContent = lote.estado || '-';
-  document.getElementById('lote-estado').className = `status-tag status-${lote.estado.toLowerCase().replace(/[^a-z]/g, '')}`;
+  document.getElementById('lote-estado').textContent = estado;
+  document.getElementById('lote-estado').className = `status-tag status-${estado.toLowerCase().replace(/[^a-z]/g, '')}`;
   
   // Información adicional
   document.getElementById('lote-tipo').textContent = lote.tipo || 'Residencial';
-  document.getElementById('lote-area').textContent = lote.area || '-';
+  document.getElementById('lote-area').textContent = area;
   
-  // Dimensiones (usar valores por defecto si no están disponibles)
-  const dimensiones = lote.dimensiones || {
-    izquierda: '8.00 ML',
-    derecha: '8.00 ML', 
-    frente: '15.00 ML',
-    fondo: '15.00 ML'
-  };
+  // Dimensiones - PRIORIZAR datos de API
+  let dimensiones;
+  
+  if (lotInfo && lotInfo.dimensions) {
+    // Validar que las dimensiones sean números válidos
+    const hasValidDimensions = 
+      typeof lotInfo.dimensions.front === 'number' && lotInfo.dimensions.front > 0 &&
+      typeof lotInfo.dimensions.right === 'number' && lotInfo.dimensions.right > 0 &&
+      typeof lotInfo.dimensions.left === 'number' && lotInfo.dimensions.left > 0 &&
+      typeof lotInfo.dimensions.back === 'number' && lotInfo.dimensions.back > 0;
+    
+    if (hasValidDimensions) {
+      // Usar dimensiones de la API (formato: front, right, left, back)
+      dimensiones = {
+        frente: `${lotInfo.dimensions.front.toFixed(2)} M`,
+        derecha: `${lotInfo.dimensions.right.toFixed(2)} M`,
+        izquierda: `${lotInfo.dimensions.left.toFixed(2)} M`,
+        fondo: `${lotInfo.dimensions.back.toFixed(2)} M`
+      };
+    } else {
+      // Si las dimensiones no son válidas, usar fallback
+      dimensiones = lote.dimensiones || DIMENSIONES_DEFAULT;
+    }
+  } else {
+    // Fallback: usar dimensiones del JSON local o valores por defecto
+    dimensiones = lote.dimensiones || DIMENSIONES_DEFAULT;
+  }
   
   document.getElementById('dim-izquierda').textContent = dimensiones.izquierda || '-';
   document.getElementById('dim-derecha').textContent = dimensiones.derecha || '-';
   document.getElementById('dim-frente').textContent = dimensiones.frente || '-';
   document.getElementById('dim-fondo').textContent = dimensiones.fondo || '-';
   
-  // Link de WhatsApp
-  document.getElementById('whatsapp-link').href = lote.whatsappLink || 
-    `https://wa.me/51946552086?text=Hola,%20estoy%20interesado%20en%20el%20lote%20${lote.id.replace('Lote ', '')}`;
+  // Link de WhatsApp - Comportamiento según estado del lote
+  const whatsappElement = document.getElementById('whatsapp-link');
+  const estadoLower = estado.toLowerCase();
+  
+  if (estadoLower === 'bloqueado') {
+    // Lote bloqueado - No disponible para contacto
+    whatsappElement.href = '#';
+    whatsappElement.textContent = 'Lote No Disponible';
+    whatsappElement.style.backgroundColor = '#dc2626';
+    whatsappElement.style.cursor = 'not-allowed';
+    whatsappElement.onclick = function(e) {
+      e.preventDefault();
+      return false;
+    };
+  } else if (estadoLower === 'reservado') {
+    // Lote reservado - Contacto para lista de espera
+    whatsappElement.href = `https://wa.me/51946552086?text=Hola,%20el%20lote%20${lote.id.replace('Lote ', '')}%20está%20reservado.%20¿Tienen%20otros%20lotes%20similares%20disponibles?`;
+    whatsappElement.textContent = 'Consultar Disponibilidad';
+    whatsappElement.style.backgroundColor = '#f97316';
+    whatsappElement.style.cursor = 'pointer';
+    whatsappElement.onclick = null;
+  } else if (estadoLower === 'vendido') {
+    // Lote vendido - No disponible
+    whatsappElement.href = '#';
+    whatsappElement.textContent = 'Lote Vendido';
+    whatsappElement.style.backgroundColor = '#16a34a';
+    whatsappElement.style.cursor = 'not-allowed';
+    whatsappElement.onclick = function(e) {
+      e.preventDefault();
+      return false;
+    };
+  } else {
+    // Lote disponible - Contacto normal
+    whatsappElement.href = lote.whatsappLink || 
+      `https://wa.me/51946552086?text=Hola,%20estoy%20interesado%20en%20el%20lote%20${lote.id.replace('Lote ', '')}`;
+    whatsappElement.textContent = 'Contáctanos por WhatsApp';
+    whatsappElement.style.backgroundColor = '#25D366';
+    whatsappElement.style.cursor = 'pointer';
+    whatsappElement.onclick = null;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('Inicializando controles...');
   
   // Cargar todos los lotes desde los archivos JSON
   cargarTodosLosLotes();
@@ -763,7 +1283,13 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('status-filter-select').addEventListener('change', filterAndRenderLotes);
   document.getElementById('search-text').addEventListener('input', filterAndRenderLotes);
   document.querySelector('.clear-filters').addEventListener('click', (e) => { e.preventDefault(); resetFilters(); });
-  btnLotes.addEventListener('click', () => { hideAllPanels(); searchPanel.classList.add('visible'); btnLotes.classList.add('active'); });
+  btnLotes.addEventListener('click', () => { 
+    hideAllPanels(); 
+    searchPanel.classList.add('visible'); 
+    btnLotes.classList.add('active'); 
+    // Renderizar lotes al abrir el panel
+    filterAndRenderLotes();
+  });
   btnAreas.addEventListener('click', () => { hideAllPanels(); areasPanel.classList.add('visible'); btnAreas.classList.add('active'); renderAreasComunes(); });
   closePanelButton.addEventListener('click', () => { hideAllPanels(); });
   closeSearchPanelButton.addEventListener('click', () => { hideAllPanels(); });
@@ -840,7 +1366,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   projectSelect.value = 'completo';
   projectSelect.dispatchEvent(new Event('change'));
-  console.log('Controles inicializados correctamente');
 });
 
 let polygonsInteractiveDisabled = false;
@@ -929,7 +1454,7 @@ window.openWhatsApp = function(source) {
     window.lastWhatsAppClick.timestamp = Date.now();
     const url = 'https://wa.me/51946552086?text=Hola,%20quiero%20información%20sobre%20Casa%20Bonita%20Residencial.';
     window.open(url, '_blank', 'noopener,noreferrer');
-  } catch (err) { console.error('No se pudo abrir WhatsApp', err); }
+  } catch (err) { /* Error silencioso */ }
 };
 
 // =============================================
@@ -961,7 +1486,6 @@ function openImageModal(amenidadId, amenidadNombre) {
   // Obtener el nombre del archivo de imagen
   const imageName = amenidadImageMap[amenidadId];
   if (!imageName) {
-    console.warn(`No se encontró imagen para la amenidad: ${amenidadId}`);
     return;
   }
   
@@ -1004,4 +1528,7 @@ document.addEventListener('DOMContentLoaded', function() {
       closeImageModal();
     }
   });
+  
+  // Inicializar API al cargar la página
+  initializeAPI();
 });

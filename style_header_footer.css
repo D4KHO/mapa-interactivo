@@ -196,7 +196,7 @@ html {
     height: 2rem;
 }
 
-.main-header {
+.main-header_MAP{
     background: var(--white);
     box-shadow: var(--shadow-soft);
     top: 0;

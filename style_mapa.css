@@ -270,50 +270,60 @@ section.project-header {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  background: rgb(183 183 183 / 15%);
-  padding: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 5px;
   border-radius: 999px;
-  border: 1px solid rgba(2,6,23,0.04);
-  box-shadow: 0 4px 12px rgba(2,6,23,0.03);
+  border: 1px solid rgba(224, 182, 57, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .stage-btn {
   --btn-padding: 8px 14px;
   appearance: none;
-  border: none;
-  background: transparent;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.05);
   padding: var(--btn-padding);
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.18s ease;
-  color: white;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 600;
   font-size: 14px;
+}
+
+/* Hover sutil para botones no activos */
+.stage-btn:hover:not([aria-pressed="true"]) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(224, 182, 57, 0.3);
+  color: white;
 }
 
 .stage-btn .thumb {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: transparent;
-  box-shadow: none;
-  transition: transform 0.18s, background 0.18s;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
 }
 
 .stage-btn[aria-pressed="true"] {
-  /* Color menos opaco, versión sutil más similar al estilo original */
-  background: linear-gradient(90deg, rgb(201 201 201 / 14%), rgb(98 98 98 / 6%));
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+  background: linear-gradient(135deg, 
+              rgba(224, 182, 57, 0.3) 0%, 
+              rgba(234, 199, 54, 0.25) 100%);
+  border-color: rgba(224, 182, 57, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(224, 182, 57, 0.2);
   color: white;
 }
 
 .stage-btn[aria-pressed="true"] .thumb {
   background: var(--accent-color);
-  transform: scale(1.1);
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(234, 199, 54, 0.4);
 }
 
 /* Compact layout on small screens */
