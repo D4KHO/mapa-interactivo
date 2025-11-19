@@ -268,68 +268,67 @@ section.project-header {
 
 .stage-switch {
   display: inline-flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 5px;
-  border-radius: 999px;
-  border: 1px solid rgba(224, 182, 57, 0.15);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #000000;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(224, 182, 57, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .stage-btn {
-  --btn-padding: 8px 14px;
+  --btn-padding: 10px 18px;
   appearance: none;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  background: #4a4a4a; /* Gris cuando no está seleccionado */
   padding: var(--btn-padding);
-  border-radius: 999px;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: rgba(255, 255, 255, 0.8);
+  color: #ffffff;
   font-weight: 600;
   font-size: 14px;
+  min-width: 110px; /* Mismo ancho para todos */
+  text-align: center;
 }
 
-/* Hover sutil para botones no activos */
+/* Hover para botones no seleccionados */
 .stage-btn:hover:not([aria-pressed="true"]) {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(224, 182, 57, 0.3);
-  color: white;
+  background: #5a5a5a;
+  border-color: rgba(224, 182, 57, 0.2);
 }
 
 .stage-btn .thumb {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
+  display: none; /* Ocultar el círculo decorativo */
 }
 
 .stage-btn[aria-pressed="true"] {
-  background: linear-gradient(135deg, 
-              rgba(224, 182, 57, 0.3) 0%, 
-              rgba(234, 199, 54, 0.25) 100%);
-  border-color: rgba(224, 182, 57, 0.4);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(224, 182, 57, 0.2);
-  color: white;
+  background: #1a1a1a; /* Negro cuando está seleccionado */
+  border-color: var(--accent-color); /* Borde amarillo */
+  box-shadow: 0 0 0 1px var(--accent-color), 
+              0 4px 12px rgba(224, 182, 57, 0.3);
+  color: #ffffff;
+  transform: none;
 }
 
-.stage-btn[aria-pressed="true"] .thumb {
-  background: var(--accent-color);
-  transform: scale(1.15);
-  box-shadow: 0 2px 6px rgba(234, 199, 54, 0.4);
+.stage-btn[aria-pressed="true"]:hover {
+  background: #1a1a1a;
+  border-color: var(--primary-color);
 }
 
 /* Compact layout on small screens */
 @media (max-width: 480px) {
-  .stage-switch { gap: 6px; }
-  .stage-btn { padding: 6px 10px; font-size: 13px; }
+  .stage-switch { gap: 4px; padding: 4px; }
+  .stage-btn { 
+    padding: 8px 12px; 
+    font-size: 13px;
+    min-width: 90px;
+  }
 }
 
 /* =============================================
